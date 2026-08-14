@@ -1,0 +1,204 @@
+# Edita este archivo y ejecuta /cosmo reload para aplicar los cambios.
+# Slots: 0 es la esquina superior izquierda. Un cofre de 27 slots usa 0-26.
+# Placeholders de los menús: {menu}, {cosmo}, {balance}, {page}, {position}, {player}.
+
+view:
+  title: '&8Tus Cosmos &7(Página {page})'
+  size: 27
+# Los items decorativos se colocan primero. Los botones, menús y balances ocupan
+# sus slots configurados después, por lo que esos elementos tendrán prioridad.
+#  items:
+#    '8':
+#      material: BLACK_STAINED_GLASS_PANE
+#      amount: 1
+#      name: ' '
+#      lore: []
+  cosmo-slots: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
+  cosmo-item:
+    material: NETHER_STAR
+    amount: 1
+    name: '{cosmo}'
+    lore:
+      - '&7Saldo: &f{balance}'
+  previous-page:
+    slot: 21
+    material: ARROW
+    amount: 1
+    name: '&ePágina anterior'
+    lore:
+      - '&7Ir a la página {page}'
+  next-page:
+    slot: 23
+    material: ARROW
+    amount: 1
+    name: '&ePágina siguiente'
+    lore:
+      - '&7Ir a la página {page}'
+
+menu-directory:
+  title: '&8Menús disponibles &7(Página {page})'
+  size: 27
+  menu-slots: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
+  menu-item:
+    material: CHEST
+    amount: 1
+    name: '{menu}'
+    lore:
+      - '&7Clic para abrir este menú.'
+  empty:
+    slot: 13
+    material: BARRIER
+    amount: 1
+    name: '&cNo hay menús disponibles.'
+    lore: []
+  previous-page:
+    slot: 21
+    material: ARROW
+    amount: 1
+    name: '&ePágina anterior'
+    lore:
+      - '&7Ir a la página {page}'
+  next-page:
+    slot: 23
+    material: ARROW
+    amount: 1
+    name: '&ePágina siguiente'
+    lore:
+      - '&7Ir a la página {page}'
+
+top-selection:
+  title: '&8Top de Cosmos'
+  size: 27
+#  items:
+#    '26':
+#      material: BLACK_STAINED_GLASS_PANE
+#      amount: 1
+#      name: ' '
+#      lore: []
+  cosmo-slots: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26]
+  cosmo-item:
+    material: NETHER_STAR
+    amount: 1
+    name: '{cosmo}'
+    lore:
+      - '&7Clic para ver el top 100.'
+
+top:
+  title: '&8Top: {cosmo}'
+  size: 27
+#  items:
+#    '26':
+#      material: BLACK_STAINED_GLASS_PANE
+#      amount: 1
+#      name: ' '
+#      lore: []
+  player-slots: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
+  player-item:
+    material: PLAYER_HEAD
+    amount: 1
+    name: '&d#{position} &f{player}'
+    lore:
+      - '&7Saldo: &f{balance} {cosmo}'
+  back:
+    slot: 26
+    material: GUNPOWDER
+    amount: 1
+    name: '&eVolver'
+    lore:
+      - '&7Volver a la selección de cosmos.'
+  previous-page:
+    slot: 21
+    material: ARROW
+    amount: 1
+    name: '&ePágina anterior'
+    lore:
+      - '&7Ir a la página {page}'
+  next-page:
+    slot: 23
+    material: ARROW
+    amount: 1
+    name: '&ePágina siguiente'
+    lore:
+      - '&7Ir a la página {page}'
+
+# Tiendas creadas mediante /cosmo menu create. Puedes editar sus ítems manualmente.
+# Ejemplo de ítem de tienda:
+# menus:
+#   tienda:
+#     name: tienda
+#     displayname: '&8Tienda'
+#     # Comando público para abrir este menú. Puede escribirse con o sin /.
+#     command: cosmoshoppvp
+#     # true lo oculta de /cosmo view, pero su comando público seguirá funcionando.
+#     hidden: false
+#     type: CHEST
+#     size: 27
+#     items:
+#       '13':
+#         material: DIAMOND
+#         amount: 1
+#         name: '&bDiamante'
+#         lore:
+#           - '&7Precio: &d10 Gemas'
+#         cosmo: gemas
+#         price: 10
+#
+# Para ítems custom usa /cosmo menu edit <nombre>. Coloca el ítem y cierra el inventario.
+# Después define su moneda y precio con: /cosmo menu item <menú> <slot> <cosmo> <precio>
+# Tras cambiar o añadir un command, ejecuta /cosmo reload. El comando aparecerá
+# en el autocompletado de todos los jugadores y abrirá el menú sin permisos.
+# Los DISPENSER reservan los slots 6, 7 y 8: flecha anterior, volver y flecha siguiente.
+# Los CHEST de 18+ reservan toda la última fila. Los cofres de 9 reservan volver en 0 y página en 8.
+# En todos los casos, las flechas cambian de página cíclicamente y la pólvora vuelve al selector.
+shop-navigation:
+  previous-page:
+    material: ARROW
+    amount: 1
+    name: '&ePágina anterior'
+    lore:
+      - '&7Ir a la página {page}.'
+  back:
+    material: GUNPOWDER
+    amount: 1
+    name: '&eVolver'
+    lore:
+      - '&7Volver al menú de cosmos.'
+  next-page:
+    material: ARROW
+    amount: 1
+    name: '&ePágina siguiente'
+    lore:
+      - '&7Ir a la página {page}.'
+menus:
+  tienda:
+    name: tienda
+    displayname: '&8Tienda General'
+    command: tienda
+    hidden: false
+    type: CHEST
+    size: 27
+    items:
+      '13':
+        material: DIAMOND
+        amount: 1
+        name: '&bDiamante'
+        lore:
+          - '&7Precio: &d10 Anormal'
+        cosmo: anormal
+        price: 10
+  tiendapvp:
+    name: tiendapvp
+    displayname: '&8Tienda PvP'
+    command: tiendapvp
+    hidden: false
+    type: CHEST
+    size: 27
+    items:
+      '13':
+        material: DIAMOND_SWORD
+        amount: 1
+        name: '&cEspada PvP'
+        lore:
+          - '&7Precio: &d25 Anormal'
+        cosmo: anormal
+        price: 25

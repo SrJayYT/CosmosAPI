@@ -1,0 +1,25 @@
+name: CosmosAPI
+version: 1.0.0
+main: com.devpapo.cosmosapi.CosmosAPI
+api-version: '1.21'
+author: devpapo
+description: Sistema de monedas virtuales, recompensas y menús de tienda.
+softdepend:
+  - PlaceholderAPI
+  - TAB
+  - DecentHolograms
+commands:
+  cosmo:
+    description: Administra los cosmos y sus menús.
+    aliases: [cosmos]
+    usage: /cosmo help
+permissions:
+  cosmos.admin:
+    description: Permite administrar cosmos, saldos y menús.
+    default: op
+  cosmos.send:
+    description: Permite enviar cosmos a otros jugadores.
+    default: true
+  cosmos.view:
+    description: Permite consultar los menús y saldos propios.
+    default: true

@@ -1,0 +1,8 @@
+# Los cosmos se crean con /cosmo create <nombre> <tipo> <cantidad>.
+cosmos:
+  anormal:
+    display-name: '&dAnormal'
+    type: TIME
+    reward: 1
+    interval: 1
+    unit: MINUTE

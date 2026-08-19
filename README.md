@@ -7,6 +7,10 @@ Plugin de Spigot que añade monedas virtuales llamadas **cosmos**, recompensas a
 **Build:** Maven (`pom.xml`)  
 **Paquete base:** `com.devpapo.cosmosapi`
 
+## Descarga
+
+Descarga la última versión desde las [releases de GitHub](https://github.com/SrJayYT/CosmosAPI/releases).
+
 ## Características
 
 ### Cosmos

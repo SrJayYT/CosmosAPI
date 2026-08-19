@@ -4,6 +4,8 @@ main: com.devpapo.cosmosapi.CosmosAPI
 api-version: '1.21'
 author: devpapo
 description: Sistema de monedas virtuales, recompensas y menús de tienda.
+loadbefore:
+  - EconomyShopGUI
 softdepend:
   - PlaceholderAPI
   - TAB

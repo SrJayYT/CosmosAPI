@@ -3,6 +3,7 @@ package com.devpapo.cosmosapi;
 import com.devpapo.cosmosapi.command.CosmoCommand;
 import com.devpapo.cosmosapi.command.PublicMenuCommand;
 import com.devpapo.cosmosapi.cosmo.CosmosService;
+import com.devpapo.cosmosapi.economy.EconomyShopGUIListener;
 import com.devpapo.cosmosapi.hologram.HologramManager;
 import com.devpapo.cosmosapi.listener.CosmoRewardListener;
 import com.devpapo.cosmosapi.menu.MenuListener;
@@ -61,6 +62,9 @@ public final class CosmosAPI extends JavaPlugin {
         menuManager.startTimeRewards();
         hologramManager.start();
 
+        if (Bukkit.getPluginManager().getPlugin("EconomyShopGUI") != null) {
+            Bukkit.getPluginManager().registerEvents(new EconomyShopGUIListener(cosmosService), this);
+        }
         if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
             new CosmosPlaceholderExpansion(this, cosmosService).register();
         }

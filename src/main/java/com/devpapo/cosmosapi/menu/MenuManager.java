@@ -534,14 +534,33 @@ public final class MenuManager {
             return;
         }
         Map<Integer, MenuItem> remainingOriginalItems = new HashMap<>(editor.originalItems);
-        String itemsPath = "menus." + editor.menu.getId() + ".items";
-        storage.getMenus().set(itemsPath, null);
+        Map<Integer, ItemStack> editedItems = new LinkedHashMap<>();
+        Map<Integer, MenuItem> matchedItems = new HashMap<>();
         for (int slot : getShopProductSlots(editor.menu, inventory.getSize())) {
             ItemStack item = inventory.getItem(slot);
             if (item == null || item.getType().isAir()) {
                 continue;
             }
+            editedItems.put(slot, item);
             MenuItem original = takeMatchingOriginalItem(remainingOriginalItems, slot, item);
+            if (original != null) {
+                matchedItems.put(slot, original);
+            }
+        }
+        for (int slot : editedItems.keySet()) {
+            if (!matchedItems.containsKey(slot)) {
+                MenuItem original = remainingOriginalItems.remove(slot);
+                if (original != null) {
+                    matchedItems.put(slot, original);
+                }
+            }
+        }
+        String itemsPath = "menus." + editor.menu.getId() + ".items";
+        storage.getMenus().set(itemsPath, null);
+        for (Map.Entry<Integer, ItemStack> entry : editedItems.entrySet()) {
+            int slot = entry.getKey();
+            ItemStack item = entry.getValue();
+            MenuItem original = matchedItems.get(slot);
             String path = itemsPath + "." + slot;
             storage.getMenus().set(path + ".item", item.clone());
             storage.getMenus().set(path + ".cosmo", original == null ? "" : original.getCosmoId());
@@ -586,7 +605,7 @@ public final class MenuManager {
         if ("DISPENSER".equals(menu.getType())) {
             return 6;
         }
-        return inventorySize == 9 ? 0 : inventorySize - 9;
+        return inventorySize == 9 ? -1 : inventorySize - 9;
     }
 
     private int getShopBackSlot(ShopMenu menu, int inventorySize) {

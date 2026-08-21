@@ -658,14 +658,14 @@ public final class MenuManager {
             }
             List<String> issues = new ArrayList<>();
             if (!section.getBoolean("enabled", true)) {
-                issues.add("deshabilitado");
+                issues.add(plugin.getMessageManager().format("menu-status.disabled", Map.of()));
             }
             if (section.getBoolean("hidden", false)) {
-                issues.add("oculto");
+                issues.add(plugin.getMessageManager().format("menu-status.hidden", Map.of()));
             }
             String command = section.getString("command", "").trim();
             if (command.isEmpty()) {
-                issues.add("sin comando público");
+                issues.add(plugin.getMessageManager().format("menu-status.no-public-command", Map.of()));
             }
             ConfigurationSection items = section.getConfigurationSection("items");
             int invalidItems = 0;
@@ -684,9 +684,9 @@ public final class MenuManager {
                 }
             }
             if (invalidItems > 0) {
-                issues.add(invalidItems + " ítem(s) sin precio, cosmo o slot válido");
+                issues.add(plugin.getMessageManager().format("menu-status.invalid-items", Map.of("amount", String.valueOf(invalidItems))));
             }
-            status.add("&f" + menuId + "&7: " + (issues.isEmpty() ? "&aactivo y configurado" : "&e" + String.join("&7, &e", issues)));
+            status.add(plugin.getMessageManager().format(issues.isEmpty() ? "menu-status.active" : "menu-status.with-issues", Map.of("menu", menuId, "issues", String.join("&7, &e", issues))));
         }
         return status;
     }
@@ -755,11 +755,7 @@ public final class MenuManager {
     }
 
     private void send(Player player, String key, Map<String, String> replacements) {
-        String message = plugin.getConfig().getString("messages." + key, "");
-        for (Map.Entry<String, String> entry : replacements.entrySet()) {
-            message = message.replace("{" + entry.getKey() + "}", entry.getValue());
-        }
-        player.sendMessage(ColorUtil.color(plugin.getConfig().getString("messages.prefix", "") + message));
+        plugin.getMessageManager().send(player, key, replacements);
     }
 
     private static final class EditorSession {

@@ -102,7 +102,7 @@ public final class CosmoCommand implements CommandExecutor, TabCompleter {
         CosmosTrigger trigger = CosmosTrigger.fromInput(args[2]);
         long reward = amount(sender, args[3]);
         if (trigger == null || reward <= 0L || (trigger != CosmosTrigger.TIME && args.length != 4)) {
-            sender.sendMessage(ColorUtil.color("&cTipos: " + Arrays.toString(CosmosTrigger.values())));
+            message(sender, "invalid-trigger-types", Map.of("types", Arrays.toString(CosmosTrigger.values())));
             return;
         }
         long interval = 1L;
@@ -116,11 +116,11 @@ public final class CosmoCommand implements CommandExecutor, TabCompleter {
             }
         }
         if (!cosmosService.create(args[1], trigger, reward, interval, unit)) {
-            sender.sendMessage(ColorUtil.color("&cYa existe un cosmo con ese nombre."));
+            message(sender, "cosmo-already-exists", Map.of());
             return;
         }
-        String time = trigger == CosmosTrigger.TIME ? " cada &f" + interval + " " + unit.name() : "";
-        sender.sendMessage(ColorUtil.color("&aCosmo &f" + args[1] + " &acreado. Recompensa: &f" + reward + " &apor &f" + trigger.name() + time));
+        String time = trigger == CosmosTrigger.TIME ? plugin.getMessageManager().format("time-reward-suffix", Map.of("interval", String.valueOf(interval), "unit", unit.name())) : "";
+        message(sender, "cosmo-created", Map.of("cosmo", args[1], "reward", String.valueOf(reward), "trigger", trigger.name(), "time", time));
     }
 
     private void displayName(CommandSender sender, String[] args) {
@@ -132,7 +132,7 @@ public final class CosmoCommand implements CommandExecutor, TabCompleter {
             message(sender, "unknown-cosmo", Map.of("cosmo", args[1]));
             return;
         }
-        sender.sendMessage(ColorUtil.color("&aNombre visual actualizado."));
+        message(sender, "display-name-updated", Map.of());
     }
 
     private void editCosmo(CommandSender sender, String[] args) {
@@ -155,9 +155,9 @@ public final class CosmoCommand implements CommandExecutor, TabCompleter {
             return;
         }
         if (updated) {
-            sender.sendMessage(ColorUtil.color("&aCosmo actualizado."));
+            message(sender, "cosmo-updated", Map.of());
         } else {
-            sender.sendMessage(ColorUtil.color("&cNo se pudo actualizar: revisa el cosmo y los valores. El intervalo solo aplica a TIME."));
+            message(sender, "cosmo-update-failed", Map.of());
         }
     }
 
@@ -168,7 +168,7 @@ public final class CosmoCommand implements CommandExecutor, TabCompleter {
         }
         if (cosmosService.delete(args[1])) {
             hologramManager.deleteForCosmo(args[1]);
-            sender.sendMessage(ColorUtil.color("&aCosmo eliminado."));
+            message(sender, "cosmo-deleted", Map.of());
         } else {
             message(sender, "unknown-cosmo", Map.of("cosmo", args[1]));
         }
@@ -186,7 +186,7 @@ public final class CosmoCommand implements CommandExecutor, TabCompleter {
                 return;
             }
             List<String> status = menuManager.getMenuStatus();
-            sender.sendMessage(ColorUtil.color(status.isEmpty() ? "&eNo hay menús creados." : "&d&lEstado de menús:"));
+            message(sender, status.isEmpty() ? "no-menus" : "menu-status-header", Map.of());
             for (String line : status) {
                 sender.sendMessage(ColorUtil.color(line));
             }
@@ -210,14 +210,14 @@ public final class CosmoCommand implements CommandExecutor, TabCompleter {
                 return;
             }
             if (type == null || !validMenuSize(type, size)) {
-                sender.sendMessage(ColorUtil.color("&cCofre: 9,18,27,36,45,54. Dispensador: 9. Horno: 3. Soporte y tolva: 5."));
+                message(sender, "invalid-menu-size", Map.of());
                 return;
             }
             if (!menuManager.createMenu(args[2], type, size)) {
-                sender.sendMessage(ColorUtil.color("&cYa existe un menú con ese nombre."));
+                message(sender, "menu-already-exists", Map.of());
                 return;
             }
-            sender.sendMessage(ColorUtil.color("&aMenú creado. Sostén un ítem y usa &f/cosmo menu item " + args[2] + " <slot> <cosmo> <precio> &apara añadir productos."));
+            message(sender, "menu-created", Map.of("menu", args[2]));
             return;
         }
         if (action.equals("open")) {
@@ -238,7 +238,7 @@ public final class CosmoCommand implements CommandExecutor, TabCompleter {
                 return;
             }
             if (!menuManager.openMenuEditor((Player) sender, args[2])) {
-                sender.sendMessage(ColorUtil.color("&cEse menú no existe."));
+                message(sender, "no-menu", Map.of("menu", args[2]));
             }
             return;
         }
@@ -257,10 +257,10 @@ public final class CosmoCommand implements CommandExecutor, TabCompleter {
             long price = amount(sender, args[5]);
             Player player = sender instanceof Player ? (Player) sender : null;
             if (price <= 0L || !menuManager.setItemSale(player, args[2], slot, args[4], price)) {
-                sender.sendMessage(ColorUtil.color("&cRevisa el menú, slot, cosmo, precio y el ítem de tu mano."));
+                message(sender, "invalid-menu-item", Map.of());
                 return;
             }
-            sender.sendMessage(ColorUtil.color("&aProducto actualizado."));
+            message(sender, "menu-item-updated", Map.of());
             return;
         }
         if (action.equals("displayname")) {
@@ -268,9 +268,7 @@ public final class CosmoCommand implements CommandExecutor, TabCompleter {
                 usage(sender, "/cosmo menu displayname <menú> <nombre>");
                 return;
             }
-            sender.sendMessage(ColorUtil.color(menuManager.setDisplayName(args[2], String.join(" ", Arrays.copyOfRange(args, 3, args.length)))
-                ? "&aNombre visual del menú actualizado."
-                : "&cEse menú no existe."));
+            message(sender, menuManager.setDisplayName(args[2], String.join(" ", Arrays.copyOfRange(args, 3, args.length))) ? "menu-display-name-updated" : "no-menu", Map.of("menu", args[2]));
             return;
         }
         if (action.equals("delete")) {
@@ -278,7 +276,7 @@ public final class CosmoCommand implements CommandExecutor, TabCompleter {
                 usage(sender, "/cosmo menu delete <nombre>");
                 return;
             }
-            sender.sendMessage(ColorUtil.color(menuManager.deleteMenu(args[2]) ? "&aMenú eliminado." : "&cEse menú no existe."));
+            message(sender, menuManager.deleteMenu(args[2]) ? "menu-deleted" : "no-menu", Map.of("menu", args[2]));
             return;
         }
         usage(sender, "/cosmo menu <create|open|edit|item|displayname|status|delete> ...");
@@ -313,7 +311,7 @@ public final class CosmoCommand implements CommandExecutor, TabCompleter {
         String action = args[1].toLowerCase(Locale.ROOT);
         if (action.equals("list") && args.length == 2) {
             List<String> status = hologramManager.getStatus();
-            sender.sendMessage(ColorUtil.color(status.isEmpty() ? "&eNo hay hologramas creados." : "&d&lHologramas de top:"));
+            message(sender, status.isEmpty() ? "no-holograms" : "hologram-status-header", Map.of());
             for (String line : status) {
                 sender.sendMessage(ColorUtil.color(line));
             }
@@ -329,12 +327,10 @@ public final class CosmoCommand implements CommandExecutor, TabCompleter {
                 return;
             }
             if (!hologramManager.isAvailable()) {
-                sender.sendMessage(ColorUtil.color("&cNecesitas instalar DecentHolograms para generar hologramas."));
+                message(sender, "decent-holograms-required", Map.of());
                 return;
             }
-            sender.sendMessage(ColorUtil.color(hologramManager.generate(args[2], args[3], ((Player) sender).getLocation())
-                ? "&aHolograma top 15 generado en tu ubicación."
-                : "&cRevisa que el id sea único y que el cosmo exista."));
+            message(sender, hologramManager.generate(args[2], args[3], ((Player) sender).getLocation()) ? "hologram-generated" : "hologram-generate-failed", Map.of());
             return;
         }
         if (action.equals("move")) {
@@ -342,9 +338,7 @@ public final class CosmoCommand implements CommandExecutor, TabCompleter {
                 usage(sender, "/cosmo hologram move <id>");
                 return;
             }
-            sender.sendMessage(ColorUtil.color(hologramManager.move(args[2], ((Player) sender).getLocation())
-                ? "&aHolograma movido a tu ubicación actual."
-                : "&cEse holograma no existe."));
+            message(sender, hologramManager.move(args[2], ((Player) sender).getLocation()) ? "hologram-moved" : "no-hologram", Map.of());
             return;
         }
         if (action.equals("title")) {
@@ -353,13 +347,11 @@ public final class CosmoCommand implements CommandExecutor, TabCompleter {
                 return;
             }
             String title = String.join(" ", Arrays.copyOfRange(args, 3, args.length));
-            sender.sendMessage(ColorUtil.color(hologramManager.setTitle(args[2], title)
-                ? "&aTítulo del holograma actualizado."
-                : "&cEse holograma no existe o el título no es válido."));
+            message(sender, hologramManager.setTitle(args[2], title) ? "hologram-title-updated" : "invalid-hologram-title", Map.of());
             return;
         }
         if (action.equals("delete") && args.length == 3) {
-            sender.sendMessage(ColorUtil.color(hologramManager.delete(args[2]) ? "&aHolograma eliminado." : "&cEse holograma no existe."));
+            message(sender, hologramManager.delete(args[2]) ? "hologram-deleted" : "no-hologram", Map.of());
             return;
         }
         usage(sender, "/cosmo hologram <generate|move|title|delete|list> ...");
@@ -418,7 +410,7 @@ public final class CosmoCommand implements CommandExecutor, TabCompleter {
             return;
         }
         if (target == null || value <= 0L) {
-            sender.sendMessage(ColorUtil.color("&cEl jugador debe estar conectado y la cantidad ser válida."));
+            message(sender, "invalid-target-or-amount", Map.of());
             return;
         }
         if (!cosmosService.transfer(((Player) sender).getUniqueId(), target.getUniqueId(), cosmo.getId(), value)) {
@@ -449,25 +441,16 @@ public final class CosmoCommand implements CommandExecutor, TabCompleter {
         } else {
             cosmosService.deposit(target.getUniqueId(), cosmo.getId(), value);
         }
-        sender.sendMessage(ColorUtil.color("&aSaldo actualizado para &f" + args[2] + "&a."));
+        message(sender, "balance-updated", Map.of("player", args[2]));
         if (target.isOnline() && target.getPlayer() != null) {
             message(target.getPlayer(), "received", Map.of("amount", String.valueOf(value), "cosmo", ColorUtil.color(cosmo.getDisplayName())));
         }
     }
 
     private void help(CommandSender sender) {
-        sender.sendMessage(ColorUtil.color("&d&lCosmosAPI &8• &fGuía de Cosmos"));
-        sender.sendMessage(ColorUtil.color("&d/cosmo view &7- Ver tus cosmos y saldos."));
-        sender.sendMessage(ColorUtil.color("&d/cosmo menus &7- Ver los menús públicos disponibles."));
-        sender.sendMessage(ColorUtil.color("&d/cosmo tops &7- Consultar los rankings de cada cosmo."));
-        sender.sendMessage(ColorUtil.color("&d/cosmo send <cosmo> <jugador> <cantidad> &7- Enviar cosmos."));
+        sendLines(sender, "help.player");
         if (sender.hasPermission("cosmos.admin")) {
-            sender.sendMessage(ColorUtil.color("&5Admin: &f/cosmo create <nombre> <tipo> <cantidad> [intervalo] [unidad]"));
-            sender.sendMessage(ColorUtil.color("&5Admin: &f/cosmo edit <cosmo> <displayname|type|reward|interval> <valor>"));
-            sender.sendMessage(ColorUtil.color("&5Admin: &f/cosmo displayname, delete, give, set, reload"));
-            sender.sendMessage(ColorUtil.color("&5Menús: &f/cosmo menu create|open|edit|item|displayname|status|delete"));
-            sender.sendMessage(ColorUtil.color("&5Hologramas: &f/cosmo hologram generate <id> <cosmo>, move, title, delete, list"));
-            sender.sendMessage(ColorUtil.color("&7Sostén el producto en tu mano y usa &f/cosmo menu item <menú> <slot> <cosmo> <precio>&7."));
+            sendLines(sender, "help.admin");
         }
     }
 
@@ -524,15 +507,17 @@ public final class CosmoCommand implements CommandExecutor, TabCompleter {
     }
 
     private void usage(CommandSender sender, String usage) {
-        sender.sendMessage(ColorUtil.color("&cUso: " + usage));
+        message(sender, "usage", Map.of("usage", usage));
     }
 
     private void message(CommandSender sender, String key, Map<String, String> replacements) {
-        String message = plugin.getConfig().getString("messages." + key, "");
-        for (Map.Entry<String, String> entry : replacements.entrySet()) {
-            message = message.replace("{" + entry.getKey() + "}", entry.getValue());
+        plugin.getMessageManager().send(sender, key, replacements);
+    }
+
+    private void sendLines(CommandSender sender, String key) {
+        for (String line : plugin.getMessageManager().formatList(key, Map.of())) {
+            sender.sendMessage(ColorUtil.color(line));
         }
-        sender.sendMessage(ColorUtil.color(plugin.getConfig().getString("messages.prefix", "") + message));
     }
 
     @Override

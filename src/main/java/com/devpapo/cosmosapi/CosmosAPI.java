@@ -10,6 +10,7 @@ import com.devpapo.cosmosapi.menu.MenuListener;
 import com.devpapo.cosmosapi.menu.MenuManager;
 import com.devpapo.cosmosapi.placeholder.CosmosPlaceholderExpansion;
 import com.devpapo.cosmosapi.storage.CosmosStorage;
+import com.devpapo.cosmosapi.util.MessageManager;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandMap;
@@ -26,6 +27,7 @@ public final class CosmosAPI extends JavaPlugin {
     private CosmosService cosmosService;
     private MenuManager menuManager;
     private HologramManager hologramManager;
+    private MessageManager messageManager;
     private final Map<String, Command> registeredMenuCommands = new HashMap<>();
 
     public static CosmosAPI getInstance() {
@@ -39,7 +41,9 @@ public final class CosmosAPI extends JavaPlugin {
         saveResource("cosmos.yml", false);
         saveResource("menus.yml", false);
         saveResource("players.yml", false);
+        saveResource("messages.yml", false);
 
+        messageManager = new MessageManager(this);
         storage = new CosmosStorage(this);
         cosmosService = new CosmosService(storage);
         menuManager = new MenuManager(this, storage, cosmosService);
@@ -93,8 +97,13 @@ public final class CosmosAPI extends JavaPlugin {
         return hologramManager;
     }
 
+    public MessageManager getMessageManager() {
+        return messageManager;
+    }
+
     public void reloadCosmos() {
         reloadConfig();
+        messageManager.reload();
         storage.reload();
         cosmosService.reload();
         menuManager.restartTimeRewards();

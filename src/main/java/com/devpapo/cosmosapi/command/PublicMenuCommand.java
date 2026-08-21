@@ -1,7 +1,8 @@
 package com.devpapo.cosmosapi.command;
 
+import com.devpapo.cosmosapi.CosmosAPI;
 import com.devpapo.cosmosapi.menu.MenuManager;
-import com.devpapo.cosmosapi.util.ColorUtil;
+import java.util.Map;
 import java.util.Collections;
 import java.util.List;
 import org.bukkit.command.Command;
@@ -23,7 +24,7 @@ public final class PublicMenuCommand extends Command {
     @Override
     public boolean execute(CommandSender sender, String label, String[] args) {
         if (!(sender instanceof Player)) {
-            sender.sendMessage(ColorUtil.color("&cEste comando solo puede usarse dentro del servidor."));
+            CosmosAPI.getInstance().getMessageManager().send(sender, "player-only", Map.of());
             return true;
         }
         menuManager.openShop((Player) sender, menuId);

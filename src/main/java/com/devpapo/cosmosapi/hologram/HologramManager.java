@@ -138,7 +138,7 @@ public final class HologramManager {
             String cosmo = section.getString("cosmo", "?");
             String world = section.getString("world", "?");
             boolean valid = cosmosService.getCosmo(cosmo) != null && Bukkit.getWorld(world) != null;
-            status.add("&f" + id + " &8- &d" + cosmo + " &7en &f" + world + (valid ? " &aactivo" : " &cconfiguración inválida"));
+            status.add(plugin.getMessageManager().format(valid ? "hologram-status.active" : "hologram-status.invalid", Map.of("id", id, "cosmo", cosmo, "world", world)));
         }
         return status;
     }
@@ -169,18 +169,18 @@ public final class HologramManager {
         CosmoDefinition cosmo = cosmosService.getCosmo(cosmoId);
         List<String> lines = new ArrayList<>();
         if (cosmo == null) {
-            lines.add(ColorUtil.color("&cCosmo no disponible"));
+            lines.add(ColorUtil.color(plugin.getMessageManager().format("hologram.cosmo-unavailable", Map.of())));
         } else {
-            lines.add(ColorUtil.color(section.getString("title", "&d&lTOP 15 &8• " + cosmo.getDisplayName())));
+            lines.add(ColorUtil.color(section.getString("title", plugin.getMessageManager().format("hologram.default-title", Map.of("cosmo", cosmo.getDisplayName())))));
             List<Map.Entry<UUID, Long>> top = cosmosService.getTop(cosmo.getId(), 15);
             if (top.isEmpty()) {
-                lines.add(ColorUtil.color("&7Aún no hay jugadores clasificados."));
+                lines.add(ColorUtil.color(plugin.getMessageManager().format("hologram.no-ranked-players", Map.of())));
             } else {
                 for (int index = 0; index < top.size(); index++) {
                     Map.Entry<UUID, Long> entry = top.get(index);
                     OfflinePlayer player = Bukkit.getOfflinePlayer(entry.getKey());
                     String name = player.getName() == null ? entry.getKey().toString().substring(0, 8) : player.getName();
-                    lines.add(ColorUtil.color("&f#" + (index + 1) + " &d" + name + " &8- &f" + entry.getValue()));
+                    lines.add(ColorUtil.color(plugin.getMessageManager().format("hologram.entry", Map.of("position", String.valueOf(index + 1), "player", name, "balance", String.valueOf(entry.getValue())))));
                 }
             }
         }

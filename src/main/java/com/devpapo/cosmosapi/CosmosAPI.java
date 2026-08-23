@@ -144,6 +144,10 @@ public final class CosmosAPI extends JavaPlugin {
         registerMenuCommands();
     }
 
+    public void refreshMenuCommands() {
+        registerMenuCommands();
+    }
+
     private void startMemoryCleanupTask() {
         long intervalMinutes = getConfig().getLong("memory-cleanup.interval-minutes", 0L);
         if (intervalMinutes <= 0L) {

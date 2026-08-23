@@ -81,6 +81,12 @@ public final class CosmoCommand implements CommandExecutor, TabCompleter {
             case "tops":
                 tops(sender);
                 return true;
+            case "balance":
+                balance(sender, args);
+                return true;
+            case "baltop":
+                baltop(sender, args);
+                return true;
             case "send":
                 sendCosmo(sender, args);
                 return true;
@@ -184,15 +190,29 @@ public final class CosmoCommand implements CommandExecutor, TabCompleter {
     }
 
     private void menu(CommandSender sender, String[] args) {
+        if (args.length < 2) {
+            usage(sender, "/cosmo menu <create|open|edit|item|displayname|enabled|disabled|status|delete> ...");
+            return;
+        }
+        String action = args[1].toLowerCase(Locale.ROOT);
+        if (action.equals("enabled") || action.equals("disabled")) {
+            if (!admin(sender) || args.length != 3) {
+                usage(sender, "/cosmo menu " + action + " <nombre>");
+                return;
+            }
+            boolean enabled = action.equals("enabled");
+            if (!menuManager.setMenuEnabled(args[2], enabled)) {
+                message(sender, "no-menu", Map.of("menu", args[2]));
+                return;
+            }
+            plugin.refreshMenuCommands();
+            message(sender, enabled ? "menu-enabled" : "menu-disabled", Map.of("menu", args[2]));
+            return;
+        }
         if (!plugin.areMenusEnabled()) {
             message(sender, "menus-disabled", Map.of());
             return;
         }
-        if (args.length < 2) {
-            usage(sender, "/cosmo menu <create|open|edit|item|displayname|status|delete> ...");
-            return;
-        }
-        String action = args[1].toLowerCase(Locale.ROOT);
         if (action.equals("status")) {
             if (!admin(sender) || args.length != 2) {
                 usage(sender, "/cosmo menu status");
@@ -292,7 +312,7 @@ public final class CosmoCommand implements CommandExecutor, TabCompleter {
             message(sender, menuManager.deleteMenu(args[2]) ? "menu-deleted" : "no-menu", Map.of("menu", args[2]));
             return;
         }
-        usage(sender, "/cosmo menu <create|open|edit|item|displayname|status|delete> ...");
+        usage(sender, "/cosmo menu <create|open|edit|item|displayname|enabled|disabled|status|delete> ...");
     }
 
     private void menus(CommandSender sender, String[] args) {
@@ -437,6 +457,63 @@ public final class CosmoCommand implements CommandExecutor, TabCompleter {
             return;
         }
         menuManager.openTopSelection((Player) sender);
+    }
+
+    private void balance(CommandSender sender, String[] args) {
+        if (!sender.hasPermission("cosmos.view")) {
+            message(sender, "no-permission", Map.of());
+            return;
+        }
+        if (!(sender instanceof Player)) {
+            message(sender, "player-only", Map.of());
+            return;
+        }
+        if (args.length != 2) {
+            usage(sender, "/cosmo balance <cosmo>");
+            return;
+        }
+        CosmoDefinition cosmo = cosmosService.getCosmo(args[1]);
+        if (cosmo == null) {
+            message(sender, "unknown-cosmo", Map.of("cosmo", args[1]));
+            return;
+        }
+        long playerBalance = cosmosService.getBalance(((Player) sender).getUniqueId(), cosmo.getId());
+        message(sender, "balance", Map.of(
+            "cosmo", ColorUtil.color(cosmo.getDisplayName()),
+            "balance", NumberFormatUtil.format(playerBalance)
+        ));
+    }
+
+    private void baltop(CommandSender sender, String[] args) {
+        if (!sender.hasPermission("cosmos.view")) {
+            message(sender, "no-permission", Map.of());
+            return;
+        }
+        if (args.length != 2) {
+            usage(sender, "/cosmo baltop <cosmo>");
+            return;
+        }
+        CosmoDefinition cosmo = cosmosService.getCosmo(args[1]);
+        if (cosmo == null) {
+            message(sender, "unknown-cosmo", Map.of("cosmo", args[1]));
+            return;
+        }
+        List<Map.Entry<java.util.UUID, Long>> top = cosmosService.getTop(cosmo.getId(), 15);
+        if (top.isEmpty()) {
+            message(sender, "no-ranked-players", Map.of("cosmo", ColorUtil.color(cosmo.getDisplayName())));
+            return;
+        }
+        message(sender, "baltop-header", Map.of("cosmo", ColorUtil.color(cosmo.getDisplayName())));
+        for (int index = 0; index < top.size(); index++) {
+            Map.Entry<java.util.UUID, Long> entry = top.get(index);
+            OfflinePlayer player = Bukkit.getOfflinePlayer(entry.getKey());
+            String playerName = player.getName() == null ? entry.getKey().toString() : player.getName();
+            message(sender, "baltop-entry", Map.of(
+                "position", String.valueOf(index + 1),
+                "player", playerName,
+                "balance", NumberFormatUtil.format(entry.getValue())
+            ));
+        }
     }
 
     private void sendCosmo(CommandSender sender, String[] args) {
@@ -631,10 +708,10 @@ public final class CosmoCommand implements CommandExecutor, TabCompleter {
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         if (args.length == 1) {
-            return complete(args[0], Arrays.asList("create", "edit", "displayname", "delete", "menu", "menus", "hologram", "reload", "view", "list", "tops", "send", "give", "giveall", "set", "help"));
+            return complete(args[0], Arrays.asList("create", "edit", "displayname", "delete", "menu", "menus", "hologram", "reload", "view", "list", "tops", "balance", "baltop", "send", "give", "giveall", "set", "help"));
         }
         String root = args[0].toLowerCase(Locale.ROOT);
-        if ((root.equals("edit") || root.equals("displayname") || root.equals("delete") || root.equals("send") || root.equals("give") || root.equals("giveall") || root.equals("set")) && args.length == 2) {
+        if ((root.equals("edit") || root.equals("displayname") || root.equals("delete") || root.equals("balance") || root.equals("baltop") || root.equals("send") || root.equals("give") || root.equals("giveall") || root.equals("set")) && args.length == 2) {
             return complete(args[1], cosmoIds());
         }
         if (root.equals("edit") && args.length == 3) {
@@ -657,9 +734,9 @@ public final class CosmoCommand implements CommandExecutor, TabCompleter {
         }
         if (root.equals("menu")) {
             if (args.length == 2) {
-                return complete(args[1], Arrays.asList("create", "open", "edit", "item", "displayname", "status", "delete"));
+                return complete(args[1], Arrays.asList("create", "open", "edit", "item", "displayname", "enabled", "disabled", "status", "delete"));
             }
-            if ((args[1].equalsIgnoreCase("open") || args[1].equalsIgnoreCase("edit") || args[1].equalsIgnoreCase("item") || args[1].equalsIgnoreCase("displayname") || args[1].equalsIgnoreCase("delete")) && args.length == 3) {
+            if ((args[1].equalsIgnoreCase("open") || args[1].equalsIgnoreCase("edit") || args[1].equalsIgnoreCase("item") || args[1].equalsIgnoreCase("displayname") || args[1].equalsIgnoreCase("enabled") || args[1].equalsIgnoreCase("disabled") || args[1].equalsIgnoreCase("delete")) && args.length == 3) {
                 return complete(args[2], menuManager.getMenuIds());
             }
             if (args[1].equalsIgnoreCase("item") && args.length == 5) {

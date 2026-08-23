@@ -74,6 +74,7 @@ public final class MenuManager {
         storage.getMenus().set(path + ".size", size);
         storage.getMenus().set(path + ".displayname", "&8" + id);
         storage.getMenus().set(path + ".command", "cosmos" + key);
+        storage.getMenus().set(path + ".enabled", true);
         storage.getMenus().set(path + ".hidden", false);
         storage.getMenus().set(path + ".items", new HashMap<>());
         storage.saveMenus();
@@ -96,6 +97,16 @@ public final class MenuManager {
             return false;
         }
         storage.getMenus().set("menus." + key + ".displayname", displayName);
+        storage.saveMenus();
+        return true;
+    }
+
+    public boolean setMenuEnabled(String id, boolean enabled) {
+        String key = id.toLowerCase(Locale.ROOT);
+        if (!storage.getMenuIds().contains(key)) {
+            return false;
+        }
+        storage.getMenus().set("menus." + key + ".enabled", enabled);
         storage.saveMenus();
         return true;
     }
@@ -125,6 +136,9 @@ public final class MenuManager {
             return commands;
         }
         for (String menuId : getMenuIds()) {
+            if (!storage.getMenus().getBoolean("menus." + menuId + ".enabled", true)) {
+                continue;
+            }
             String configured = storage.getMenus().getString("menus." + menuId + ".command", "");
             String command = configured == null ? "" : configured.trim().toLowerCase(Locale.ROOT);
             if (command.startsWith("/")) {
@@ -247,6 +261,10 @@ public final class MenuManager {
         ShopMenu menu = getMenu(id);
         if (menu == null) {
             send(player, "no-menu", Map.of("menu", id));
+            return;
+        }
+        if (!storage.getMenus().getBoolean("menus." + menu.getId() + ".enabled", true)) {
+            send(player, "menu-disabled", Map.of("menu", menu.getId()));
             return;
         }
         Inventory inventory = createInventory(menu);

@@ -8,6 +8,8 @@ import com.devpapo.cosmosapi.cosmo.TimeRewardUnit;
 import com.devpapo.cosmosapi.hologram.HologramManager;
 import com.devpapo.cosmosapi.menu.MenuManager;
 import com.devpapo.cosmosapi.util.ColorUtil;
+import com.devpapo.cosmosapi.util.NumberFormatUtil;
+import com.cryptomorin.xseries.XSound;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -20,6 +22,7 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 
@@ -72,6 +75,9 @@ public final class CosmoCommand implements CommandExecutor, TabCompleter {
             case "view":
                 view(sender);
                 return true;
+            case "list":
+                list(sender);
+                return true;
             case "tops":
                 tops(sender);
                 return true;
@@ -80,6 +86,9 @@ public final class CosmoCommand implements CommandExecutor, TabCompleter {
                 return true;
             case "give":
                 changeBalance(sender, args, false);
+                return true;
+            case "giveall":
+                giveAll(sender, args);
                 return true;
             case "set":
                 changeBalance(sender, args, true);
@@ -120,7 +129,7 @@ public final class CosmoCommand implements CommandExecutor, TabCompleter {
             return;
         }
         String time = trigger == CosmosTrigger.TIME ? plugin.getMessageManager().format("time-reward-suffix", Map.of("interval", String.valueOf(interval), "unit", unit.name())) : "";
-        message(sender, "cosmo-created", Map.of("cosmo", args[1], "reward", String.valueOf(reward), "trigger", trigger.name(), "time", time));
+        message(sender, "cosmo-created", Map.of("cosmo", args[1], "reward", NumberFormatUtil.format(reward), "trigger", trigger.name(), "time", time));
     }
 
     private void displayName(CommandSender sender, String[] args) {
@@ -175,6 +184,10 @@ public final class CosmoCommand implements CommandExecutor, TabCompleter {
     }
 
     private void menu(CommandSender sender, String[] args) {
+        if (!plugin.areMenusEnabled()) {
+            message(sender, "menus-disabled", Map.of());
+            return;
+        }
         if (args.length < 2) {
             usage(sender, "/cosmo menu <create|open|edit|item|displayname|status|delete> ...");
             return;
@@ -283,6 +296,10 @@ public final class CosmoCommand implements CommandExecutor, TabCompleter {
     }
 
     private void menus(CommandSender sender, String[] args) {
+        if (!plugin.areMenusEnabled()) {
+            message(sender, "menus-disabled", Map.of());
+            return;
+        }
         if (!sender.hasPermission("cosmos.view")) {
             message(sender, "no-permission", Map.of());
             return;
@@ -304,6 +321,10 @@ public final class CosmoCommand implements CommandExecutor, TabCompleter {
     }
 
     private void hologram(CommandSender sender, String[] args) {
+        if (!plugin.areHologramsEnabled()) {
+            message(sender, "holograms-disabled", Map.of());
+            return;
+        }
         if (!admin(sender) || args.length < 2) {
             usage(sender, "/cosmo hologram <generate|move|title|delete|list> ...");
             return;
@@ -366,6 +387,10 @@ public final class CosmoCommand implements CommandExecutor, TabCompleter {
     }
 
     private void view(CommandSender sender) {
+        if (!plugin.areMenusEnabled()) {
+            message(sender, "menus-disabled", Map.of());
+            return;
+        }
         if (!sender.hasPermission("cosmos.view")) {
             message(sender, "no-permission", Map.of());
             return;
@@ -377,7 +402,32 @@ public final class CosmoCommand implements CommandExecutor, TabCompleter {
         menuManager.openCosmosView((Player) sender, 0);
     }
 
+    private void list(CommandSender sender) {
+        if (!sender.hasPermission("cosmos.view")) {
+            message(sender, "no-permission", Map.of());
+            return;
+        }
+        List<CosmoDefinition> cosmos = cosmosService.getCosmos();
+        if (cosmos.isEmpty()) {
+            message(sender, "no-cosmos", Map.of());
+            return;
+        }
+        message(sender, "cosmo-list-header", Map.of());
+        for (CosmoDefinition cosmo : cosmos) {
+            message(sender, "cosmo-list-entry", Map.of(
+                "cosmo", cosmo.getId(),
+                "display-name", ColorUtil.color(cosmo.getDisplayName()),
+                "trigger", cosmo.getTrigger().name(),
+                "reward", NumberFormatUtil.format(cosmo.getReward())
+            ));
+        }
+    }
+
     private void tops(CommandSender sender) {
+        if (!plugin.areMenusEnabled()) {
+            message(sender, "menus-disabled", Map.of());
+            return;
+        }
         if (!sender.hasPermission("cosmos.view")) {
             message(sender, "no-permission", Map.of());
             return;
@@ -413,12 +463,16 @@ public final class CosmoCommand implements CommandExecutor, TabCompleter {
             message(sender, "invalid-target-or-amount", Map.of());
             return;
         }
+        if (target.getUniqueId().equals(((Player) sender).getUniqueId())) {
+            message(sender, "cannot-send-to-self", Map.of());
+            return;
+        }
         if (!cosmosService.transfer(((Player) sender).getUniqueId(), target.getUniqueId(), cosmo.getId(), value)) {
             message(sender, "insufficient-funds", Map.of("cosmo", ColorUtil.color(cosmo.getDisplayName())));
             return;
         }
-        message(sender, "sent", Map.of("amount", String.valueOf(value), "cosmo", ColorUtil.color(cosmo.getDisplayName()), "player", target.getName()));
-        message(target, "received", Map.of("amount", String.valueOf(value), "cosmo", ColorUtil.color(cosmo.getDisplayName())));
+        message(sender, "sent", Map.of("amount", NumberFormatUtil.format(value), "cosmo", ColorUtil.color(cosmo.getDisplayName()), "player", target.getName()));
+        message(target, "received", Map.of("amount", NumberFormatUtil.format(value), "cosmo", ColorUtil.color(cosmo.getDisplayName())));
     }
 
     private void changeBalance(CommandSender sender, String[] args, boolean set) {
@@ -427,7 +481,34 @@ public final class CosmoCommand implements CommandExecutor, TabCompleter {
             return;
         }
         CosmoDefinition cosmo = cosmosService.getCosmo(args[1]);
-        long value = amount(sender, args[3]);
+        long value = signedAmount(sender, args[3]);
+        if (cosmo == null) {
+            message(sender, "unknown-cosmo", Map.of("cosmo", args[1]));
+            return;
+        }
+        OfflinePlayer target = Bukkit.getOfflinePlayer(args[2]);
+        if (set) {
+            cosmosService.setBalance(target.getUniqueId(), cosmo.getId(), value);
+        } else {
+            cosmosService.adjustBalance(target.getUniqueId(), cosmo.getId(), value);
+        }
+        message(sender, "balance-adjusted", Map.of(
+            "player", args[2],
+            "amount", NumberFormatUtil.format(value),
+            "cosmo", ColorUtil.color(cosmo.getDisplayName())
+        ));
+        if (target.isOnline() && target.getPlayer() != null) {
+            message(target.getPlayer(), "balance-adjusted-target", Map.of("amount", NumberFormatUtil.format(value), "cosmo", ColorUtil.color(cosmo.getDisplayName())));
+        }
+    }
+
+    private void giveAll(CommandSender sender, String[] args) {
+        if (!admin(sender) || args.length != 3) {
+            usage(sender, "/cosmo giveall <cosmo> <cantidad>");
+            return;
+        }
+        CosmoDefinition cosmo = cosmosService.getCosmo(args[1]);
+        long value = amount(sender, args[2]);
         if (cosmo == null) {
             message(sender, "unknown-cosmo", Map.of("cosmo", args[1]));
             return;
@@ -435,15 +516,33 @@ public final class CosmoCommand implements CommandExecutor, TabCompleter {
         if (value <= 0L) {
             return;
         }
-        OfflinePlayer target = Bukkit.getOfflinePlayer(args[2]);
-        if (set) {
-            cosmosService.setBalance(target.getUniqueId(), cosmo.getId(), value);
-        } else {
-            cosmosService.deposit(target.getUniqueId(), cosmo.getId(), value);
+        String displayName = ColorUtil.color(cosmo.getDisplayName());
+        int recipients = 0;
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            cosmosService.deposit(player.getUniqueId(), cosmo.getId(), value);
+            recipients++;
         }
-        message(sender, "balance-updated", Map.of("player", args[2]));
-        if (target.isOnline() && target.getPlayer() != null) {
-            message(target.getPlayer(), "received", Map.of("amount", String.valueOf(value), "cosmo", ColorUtil.color(cosmo.getDisplayName())));
+        Map<String, String> replacements = Map.of(
+            "amount", NumberFormatUtil.format(value),
+            "cosmo", displayName,
+            "players", String.valueOf(recipients)
+        );
+        message(sender, "giveall-success", replacements);
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            message(player, "giveall-announcement", replacements);
+        }
+        playGiveAllMelody();
+    }
+
+    private void playGiveAllMelody() {
+        String[] melody = {"BLOCK_NOTE_BLOCK_HARP", "BLOCK_NOTE_BLOCK_HARP", "BLOCK_NOTE_BLOCK_PLING", "BLOCK_NOTE_BLOCK_HARP", "BLOCK_NOTE_BLOCK_PLING"};
+        for (int index = 0; index < melody.length; index++) {
+            String soundName = melody[index];
+            Bukkit.getScheduler().runTaskLater(plugin, () -> XSound.matchXSound(soundName).ifPresent(sound -> {
+                for (Player player : Bukkit.getOnlinePlayers()) {
+                    sound.play(player);
+                }
+            }), index * 4L);
         }
     }
 
@@ -455,7 +554,7 @@ public final class CosmoCommand implements CommandExecutor, TabCompleter {
     }
 
     private boolean admin(CommandSender sender) {
-        if (sender.hasPermission("cosmos.admin")) {
+        if (sender instanceof ConsoleCommandSender || sender.hasPermission("cosmos.admin")) {
             return true;
         }
         message(sender, "no-permission", Map.of());
@@ -472,6 +571,15 @@ public final class CosmoCommand implements CommandExecutor, TabCompleter {
         }
         message(sender, "invalid-number", Map.of());
         return -1L;
+    }
+
+    private long signedAmount(CommandSender sender, String input) {
+        try {
+            return Long.parseLong(input);
+        } catch (NumberFormatException ignored) {
+            message(sender, "invalid-integer", Map.of());
+            return 0L;
+        }
     }
 
     private boolean validId(String input) {
@@ -523,10 +631,10 @@ public final class CosmoCommand implements CommandExecutor, TabCompleter {
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         if (args.length == 1) {
-            return complete(args[0], Arrays.asList("create", "edit", "displayname", "delete", "menu", "menus", "hologram", "reload", "view", "tops", "send", "give", "set", "help"));
+            return complete(args[0], Arrays.asList("create", "edit", "displayname", "delete", "menu", "menus", "hologram", "reload", "view", "list", "tops", "send", "give", "giveall", "set", "help"));
         }
         String root = args[0].toLowerCase(Locale.ROOT);
-        if ((root.equals("edit") || root.equals("displayname") || root.equals("delete") || root.equals("send") || root.equals("give") || root.equals("set")) && args.length == 2) {
+        if ((root.equals("edit") || root.equals("displayname") || root.equals("delete") || root.equals("send") || root.equals("give") || root.equals("giveall") || root.equals("set")) && args.length == 2) {
             return complete(args[1], cosmoIds());
         }
         if (root.equals("edit") && args.length == 3) {

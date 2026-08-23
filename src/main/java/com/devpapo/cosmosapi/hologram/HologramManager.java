@@ -5,6 +5,7 @@ import com.devpapo.cosmosapi.cosmo.CosmoDefinition;
 import com.devpapo.cosmosapi.cosmo.CosmosService;
 import com.devpapo.cosmosapi.storage.CosmosStorage;
 import com.devpapo.cosmosapi.util.ColorUtil;
+import com.devpapo.cosmosapi.util.NumberFormatUtil;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -43,6 +44,10 @@ public final class HologramManager {
     }
 
     public void start() {
+        if (!plugin.areHologramsEnabled()) {
+            removeAllHolograms();
+            return;
+        }
         refreshAll();
         if (isAvailable()) {
             refreshTask = Bukkit.getScheduler().runTaskTimer(plugin, this::refreshAll, 1200L, 1200L);
@@ -66,7 +71,7 @@ public final class HologramManager {
 
     public boolean generate(String id, String cosmoId, Location location) {
         String key = normalize(id);
-        if (!isAvailable() || cosmosService.getCosmo(cosmoId) == null || getSection(key) != null || location.getWorld() == null) {
+        if (!plugin.areHologramsEnabled() || !isAvailable() || cosmosService.getCosmo(cosmoId) == null || getSection(key) != null || location.getWorld() == null) {
             return false;
         }
         saveLocation(key, cosmosService.getCosmo(cosmoId).getId(), location);
@@ -144,7 +149,7 @@ public final class HologramManager {
     }
 
     public void refreshAll() {
-        if (!isAvailable()) {
+        if (!plugin.areHologramsEnabled() || !isAvailable()) {
             return;
         }
         for (String id : getHologramIds()) {
@@ -153,7 +158,7 @@ public final class HologramManager {
     }
 
     private void refresh(String id) {
-        if (!isAvailable()) {
+        if (!plugin.areHologramsEnabled() || !isAvailable()) {
             return;
         }
         ConfigurationSection section = getSection(id);
@@ -180,7 +185,7 @@ public final class HologramManager {
                     Map.Entry<UUID, Long> entry = top.get(index);
                     OfflinePlayer player = Bukkit.getOfflinePlayer(entry.getKey());
                     String name = player.getName() == null ? entry.getKey().toString().substring(0, 8) : player.getName();
-                    lines.add(ColorUtil.color(plugin.getMessageManager().format("hologram.entry", Map.of("position", String.valueOf(index + 1), "player", name, "balance", String.valueOf(entry.getValue())))));
+                    lines.add(ColorUtil.color(plugin.getMessageManager().format("hologram.entry", Map.of("position", String.valueOf(index + 1), "player", name, "balance", NumberFormatUtil.format(entry.getValue())))));
                 }
             }
         }
@@ -209,6 +214,12 @@ public final class HologramManager {
             Class.forName("eu.decentsoftware.holograms.api.DHAPI").getMethod("removeHologram", String.class).invoke(null, hologramName(id));
         } catch (ReflectiveOperationException exception) {
             plugin.getLogger().warning("No se pudo eliminar el holograma de cosmos '" + id + "': " + exception.getMessage());
+        }
+    }
+
+    private void removeAllHolograms() {
+        for (String id : getHologramIds()) {
+            removeHologram(id);
         }
     }
 

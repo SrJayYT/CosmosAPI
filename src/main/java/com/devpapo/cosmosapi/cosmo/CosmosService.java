@@ -33,11 +33,13 @@ public final class CosmosService {
                 if (trigger == CosmosTrigger.TIME) {
                     TimeRewardUnit unit = TimeRewardUnit.fromInput(section.getString("unit", "MINUTE"));
                     long amount = Math.max(1L, section.getLong("interval", 1L));
-                    if (unit != null) {
-                        try {
-                            interval = unit.toMilliseconds(amount);
-                        } catch (ArithmeticException ignored) {
-                        }
+                    if (unit == null) {
+                        continue;
+                    }
+                    try {
+                        interval = unit.toMilliseconds(amount);
+                    } catch (ArithmeticException ignored) {
+                        continue;
                     }
                 }
                 cosmos.put(normalize(id), new CosmoDefinition(id, section.getString("display-name", id), trigger, reward, interval));
@@ -50,19 +52,21 @@ public final class CosmosService {
         if (cosmos.containsKey(key) || trigger == null || reward <= 0L || (trigger == CosmosTrigger.TIME && (interval <= 0L || unit == null))) {
             return false;
         }
-        String path = "cosmos." + key;
-        storage.getCosmos().set(path + ".display-name", "&d" + id);
-        storage.getCosmos().set(path + ".type", trigger.name());
-        storage.getCosmos().set(path + ".reward", reward);
         long timeIntervalMillis = 60_000L;
         if (trigger == CosmosTrigger.TIME) {
-            storage.getCosmos().set(path + ".interval", interval);
-            storage.getCosmos().set(path + ".unit", unit.name());
             try {
                 timeIntervalMillis = unit.toMilliseconds(interval);
             } catch (ArithmeticException exception) {
                 return false;
             }
+        }
+        String path = "cosmos." + key;
+        storage.getCosmos().set(path + ".display-name", "&d" + id);
+        storage.getCosmos().set(path + ".type", trigger.name());
+        storage.getCosmos().set(path + ".reward", reward);
+        if (trigger == CosmosTrigger.TIME) {
+            storage.getCosmos().set(path + ".interval", interval);
+            storage.getCosmos().set(path + ".unit", unit.name());
         }
         storage.saveCosmos();
         cosmos.put(key, new CosmoDefinition(key, "&d" + id, trigger, reward, timeIntervalMillis));
@@ -164,13 +168,19 @@ public final class CosmosService {
         if (cosmo == null) {
             return;
         }
-        storage.getPlayers().set("players." + playerId + ".balances." + cosmo.getId(), Math.max(0L, amount));
+        storage.getPlayers().set("players." + playerId + ".balances." + cosmo.getId(), amount);
         storage.savePlayers();
     }
 
     public void deposit(UUID playerId, String cosmoId, long amount) {
         if (amount > 0L && getCosmo(cosmoId) != null) {
-            setBalance(playerId, cosmoId, Math.addExact(getBalance(playerId, cosmoId), amount));
+            setBalance(playerId, cosmoId, addSafely(getBalance(playerId, cosmoId), amount));
+        }
+    }
+
+    public void adjustBalance(UUID playerId, String cosmoId, long amount) {
+        if (getCosmo(cosmoId) != null) {
+            setBalance(playerId, cosmoId, addSafely(getBalance(playerId, cosmoId), amount));
         }
     }
 
@@ -186,6 +196,17 @@ public final class CosmosService {
         return true;
     }
 
+    public long withdrawUpTo(UUID playerId, String cosmoId, long amount) {
+        if (amount <= 0L || getCosmo(cosmoId) == null) {
+            return 0L;
+        }
+        long withdrawn = Math.min(getBalance(playerId, cosmoId), amount);
+        if (withdrawn > 0L) {
+            setBalance(playerId, cosmoId, getBalance(playerId, cosmoId) - withdrawn);
+        }
+        return withdrawn;
+    }
+
     public boolean transfer(UUID senderId, UUID recipientId, String cosmoId, long amount) {
         if (amount <= 0L || senderId.equals(recipientId) || getCosmo(cosmoId) == null) {
             return false;
@@ -196,8 +217,11 @@ public final class CosmosService {
         }
         CosmoDefinition cosmo = getCosmo(cosmoId);
         long recipientBalance = getBalance(recipientId, cosmoId);
+        if (recipientBalance > Long.MAX_VALUE - amount) {
+            return false;
+        }
         storage.getPlayers().set("players." + senderId + ".balances." + cosmo.getId(), senderBalance - amount);
-        storage.getPlayers().set("players." + recipientId + ".balances." + cosmo.getId(), Math.addExact(recipientBalance, amount));
+        storage.getPlayers().set("players." + recipientId + ".balances." + cosmo.getId(), recipientBalance + amount);
         storage.savePlayers();
         return true;
     }
@@ -245,7 +269,7 @@ public final class CosmosService {
             long lastReward = storage.getPlayers().getLong(path, 0L);
             if (now - lastReward >= definition.getTimeIntervalMillis()) {
                 long balance = getBalance(playerId, definition.getId());
-                storage.getPlayers().set("players." + playerId + ".balances." + definition.getId(), Math.addExact(balance, definition.getReward()));
+                storage.getPlayers().set("players." + playerId + ".balances." + definition.getId(), addSafely(balance, definition.getReward()));
                 storage.getPlayers().set(path, now);
                 changed = true;
             }
@@ -257,5 +281,15 @@ public final class CosmosService {
 
     private String normalize(String id) {
         return id.toLowerCase(Locale.ROOT);
+    }
+
+    private long addSafely(long current, long amount) {
+        if (amount > 0L && current > Long.MAX_VALUE - amount) {
+            return Long.MAX_VALUE;
+        }
+        if (amount < 0L && current < Long.MIN_VALUE - amount) {
+            return Long.MIN_VALUE;
+        }
+        return current + amount;
     }
 }

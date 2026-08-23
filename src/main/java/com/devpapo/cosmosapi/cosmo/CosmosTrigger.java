@@ -9,6 +9,8 @@ public enum CosmosTrigger {
     BLOCK_BREAK,
     BLOCK_PLACE,
     MOB_KILL,
+    LIVING_ENTITY_KILL,
+    ALL_KILLS,
     TAMED_ANIMAL_DEATH;
 
     public static CosmosTrigger fromInput(String input) {

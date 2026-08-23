@@ -1,0 +1,15 @@
+memory-cleanup:
+  # Minutos entre cada liberación de memoria. Usa 0 para desactivarla.
+  interval-minutes: 30
+
+anti-alt:
+  # Impide recompensas PLAYER_KILL entre jugadores con la misma IP.
+  same-ip-player-kill: false
+
+menus:
+  # Habilita las interfaces, tiendas y comandos públicos de menús.
+  enabled: false
+
+holograms:
+  # Habilita los hologramas de ranking mediante DecentHolograms.
+  enabled: true

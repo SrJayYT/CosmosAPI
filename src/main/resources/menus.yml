@@ -1,6 +1,8 @@
 # Edita este archivo y ejecuta /cosmo reload para aplicar los cambios.
 # Slots: 0 es la esquina superior izquierda. Un cofre de 27 slots usa 0-26.
-# Placeholders de los menús: {menu}, {cosmo}, {balance}, {page}, {position}, {player}.
+# Placeholders de los menús: {menu}, {cosmo-name}, {balance}, {page}, {position}, {player}.
+# Para el saldo del cosmo mostrado usa %cosmos_<cosmo>%. Ejemplo externo de PlaceholderAPI: %cosmos_pichula%.
+# El nombre visual de un cosmo externo es %cosmos_pichula_displayname%.
 
 view:
   title: '&8Tus Cosmos &7(Página {page})'
@@ -17,9 +19,9 @@ view:
   cosmo-item:
     material: NETHER_STAR
     amount: 1
-    name: '{cosmo}'
+    name: '{cosmo-name}'
     lore:
-      - '&7Saldo: &f{balance}'
+      - '&7Saldo: &f%cosmos_<cosmo>%'
   previous-page:
     slot: 21
     material: ARROW
@@ -79,12 +81,12 @@ top-selection:
   cosmo-item:
     material: NETHER_STAR
     amount: 1
-    name: '{cosmo}'
+    name: '{cosmo-name}'
     lore:
       - '&7Clic para ver el top 100.'
 
 top:
-  title: '&8Top: {cosmo}'
+  title: '&8Top: {cosmo-name}'
   size: 27
 #  items:
 #    '26':
@@ -98,7 +100,7 @@ top:
     amount: 1
     name: '&d#{position} &f{player}'
     lore:
-      - '&7Saldo: &f{balance} {cosmo}'
+      - '&7Saldo: &f{balance} {cosmo-name}'
   back:
     slot: 26
     material: GUNPOWDER

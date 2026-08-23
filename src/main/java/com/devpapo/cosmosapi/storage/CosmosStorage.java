@@ -12,15 +12,18 @@ import org.bukkit.configuration.file.YamlConfiguration;
 public final class CosmosStorage {
     private final CosmosAPI plugin;
     private final File cosmosFile;
+    private final File conditionsFile;
     private final File menusFile;
     private final File playersFile;
     private FileConfiguration cosmos;
+    private FileConfiguration conditions;
     private FileConfiguration menus;
     private FileConfiguration players;
 
     public CosmosStorage(CosmosAPI plugin) {
         this.plugin = plugin;
         this.cosmosFile = new File(plugin.getDataFolder(), "cosmos.yml");
+        this.conditionsFile = new File(plugin.getDataFolder(), "conditions.yml");
         this.menusFile = new File(plugin.getDataFolder(), "menus.yml");
         this.playersFile = new File(plugin.getDataFolder(), "players.yml");
         reload();
@@ -28,12 +31,17 @@ public final class CosmosStorage {
 
     public void reload() {
         cosmos = YamlConfiguration.loadConfiguration(cosmosFile);
+        conditions = YamlConfiguration.loadConfiguration(conditionsFile);
         menus = YamlConfiguration.loadConfiguration(menusFile);
         players = YamlConfiguration.loadConfiguration(playersFile);
     }
 
     public FileConfiguration getCosmos() {
         return cosmos;
+    }
+
+    public FileConfiguration getConditions() {
+        return conditions;
     }
 
     public FileConfiguration getMenus() {
@@ -51,6 +59,13 @@ public final class CosmosStorage {
         return cosmos.getConfigurationSection("cosmos").getKeys(false);
     }
 
+    public Set<String> getConditionIds() {
+        if (conditions.getConfigurationSection("conditions") == null) {
+            return Collections.emptySet();
+        }
+        return conditions.getConfigurationSection("conditions").getKeys(false);
+    }
+
     public Set<String> getMenuIds() {
         if (menus.getConfigurationSection("menus") == null) {
             return Collections.emptySet();
@@ -60,6 +75,10 @@ public final class CosmosStorage {
 
     public void saveCosmos() {
         save(cosmos, cosmosFile);
+    }
+
+    public void saveConditions() {
+        save(conditions, conditionsFile);
     }
 
     public void saveMenus() {

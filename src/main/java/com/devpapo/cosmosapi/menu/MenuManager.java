@@ -7,6 +7,7 @@ import com.devpapo.cosmosapi.cosmo.CosmosService;
 import com.devpapo.cosmosapi.cosmo.CosmosTrigger;
 import com.devpapo.cosmosapi.storage.CosmosStorage;
 import com.devpapo.cosmosapi.util.ColorUtil;
+import com.devpapo.cosmosapi.util.NumberFormatUtil;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -120,6 +121,9 @@ public final class MenuManager {
 
     public Map<String, String> getPublicMenuCommands() {
         Map<String, String> commands = new LinkedHashMap<>();
+        if (!plugin.areMenusEnabled()) {
+            return commands;
+        }
         for (String menuId : getMenuIds()) {
             String configured = storage.getMenus().getString("menus." + menuId + ".command", "");
             String command = configured == null ? "" : configured.trim().toLowerCase(Locale.ROOT);
@@ -149,6 +153,10 @@ public final class MenuManager {
     }
 
     public void openMenuDirectory(Player player, int page) {
+        if (!plugin.areMenusEnabled()) {
+            send(player, "menus-disabled", Map.of());
+            return;
+        }
         List<String> menuIds = getAvailableMenuIds();
         ConfigurationSection directory = storage.getMenus().getConfigurationSection("menu-directory");
         int size = getChestSize(directory, 27);
@@ -194,6 +202,10 @@ public final class MenuManager {
     }
 
     public boolean openMenuEditor(Player player, String id) {
+        if (!plugin.areMenusEnabled()) {
+            send(player, "menus-disabled", Map.of());
+            return false;
+        }
         ShopMenu menu = getMenu(id);
         if (menu == null) {
             return false;
@@ -228,6 +240,10 @@ public final class MenuManager {
     }
 
     private void openShop(Player player, String id, int page) {
+        if (!plugin.areMenusEnabled()) {
+            send(player, "menus-disabled", Map.of());
+            return;
+        }
         ShopMenu menu = getMenu(id);
         if (menu == null) {
             send(player, "no-menu", Map.of("menu", id));
@@ -289,7 +305,7 @@ public final class MenuManager {
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {
             List<String> lore = meta.hasLore() ? new ArrayList<>(meta.getLore()) : new ArrayList<>();
-            lore.add("&8Precio: &f" + price + " " + cosmo.getDisplayName());
+            lore.add("&8Precio: &f" + NumberFormatUtil.format(price) + " " + cosmo.getDisplayName());
             meta.setLore(ColorUtil.color(lore));
             item.setItemMeta(meta);
         }
@@ -301,6 +317,10 @@ public final class MenuManager {
     }
 
     public void openCosmosView(Player player, int page) {
+        if (!plugin.areMenusEnabled()) {
+            send(player, "menus-disabled", Map.of());
+            return;
+        }
         List<CosmoDefinition> cosmos = cosmosService.getCosmos();
         ConfigurationSection viewSection = storage.getMenus().getConfigurationSection("view");
         int size = getChestSize(viewSection, 27);
@@ -314,7 +334,7 @@ public final class MenuManager {
         for (int index = 0; index < cosmoSlots.size() && actualPage * cosmoSlots.size() + index < cosmos.size(); index++) {
             CosmoDefinition cosmo = cosmos.get(actualPage * cosmoSlots.size() + index);
             long balance = cosmosService.getBalance(player.getUniqueId(), cosmo.getId());
-            ItemStack icon = createConfiguredItem(viewSection == null ? null : viewSection.getConfigurationSection("cosmo-item"), "NETHER_STAR", 1, "{cosmo}", List.of("&7Saldo: &f{balance}"), Map.of("cosmo", cosmo.getDisplayName(), "balance", String.valueOf(balance)));
+            ItemStack icon = createConfiguredItem(viewSection == null ? null : viewSection.getConfigurationSection("cosmo-item"), "NETHER_STAR", 1, "{cosmo-name}", List.of("&7Saldo: &f%cosmos_<cosmo>%"), cosmoReplacements(cosmo, NumberFormatUtil.format(balance)));
             inventory.setItem(cosmoSlots.get(index), icon);
         }
         ConfigurationSection previousSection = viewSection == null ? null : viewSection.getConfigurationSection("previous-page");
@@ -334,6 +354,10 @@ public final class MenuManager {
     }
 
     public void openTopSelection(Player player) {
+        if (!plugin.areMenusEnabled()) {
+            send(player, "menus-disabled", Map.of());
+            return;
+        }
         ConfigurationSection selectionSection = storage.getMenus().getConfigurationSection("top-selection");
         int size = getChestSize(selectionSection, 27);
         List<Integer> slots = getSlots(selectionSection, "cosmo-slots", defaultSlots(0, size), size);
@@ -344,7 +368,7 @@ public final class MenuManager {
         for (int index = 0; index < slots.size() && index < cosmosService.getCosmos().size(); index++) {
             CosmoDefinition cosmo = cosmosService.getCosmos().get(index);
             int slot = slots.get(index);
-            inventory.setItem(slot, createConfiguredItem(selectionSection == null ? null : selectionSection.getConfigurationSection("cosmo-item"), "NETHER_STAR", 1, "{cosmo}", List.of("&7Clic para ver el top 100."), Map.of("cosmo", cosmo.getDisplayName())));
+            inventory.setItem(slot, createConfiguredItem(selectionSection == null ? null : selectionSection.getConfigurationSection("cosmo-item"), "NETHER_STAR", 1, "{cosmo-name}", List.of("&7Clic para ver el top 100."), cosmoReplacements(cosmo, null)));
             actions.put(slot, () -> openTop(player, cosmo, 0));
         }
         buttons.put(inventory, actions);
@@ -357,15 +381,21 @@ public final class MenuManager {
         List<Integer> slots = getSlots(topSection, "player-slots", defaultSlots(0, 15), size);
         int maxPage = Math.max(0, (100 - 1) / Math.max(1, slots.size()));
         int actualPage = Math.max(0, Math.min(page, maxPage));
-        String title = topSection == null ? "&8Top: {cosmo}" : topSection.getString("title", "&8Top: {cosmo}");
-        Inventory inventory = Bukkit.createInventory(null, size, ColorUtil.color(replace(title, Map.of("cosmo", cosmo.getDisplayName(), "page", String.valueOf(actualPage + 1)))));
+        String title = topSection == null ? "&8Top: {cosmo-name}" : topSection.getString("title", "&8Top: {cosmo-name}");
+        Map<String, String> titleReplacements = cosmoReplacements(cosmo, null);
+        titleReplacements.put("page", String.valueOf(actualPage + 1));
+        Inventory inventory = Bukkit.createInventory(null, size, ColorUtil.color(replace(title, titleReplacements)));
         loadStaticItems(inventory, topSection);
         List<Map.Entry<UUID, Long>> topPlayers = cosmosService.getTop(cosmo.getId(), actualPage * slots.size(), slots.size());
         for (int index = 0; index < topPlayers.size(); index++) {
             Map.Entry<UUID, Long> entry = topPlayers.get(index);
             OfflinePlayer ranked = Bukkit.getOfflinePlayer(entry.getKey());
             String name = ranked.getName() == null ? entry.getKey().toString().substring(0, 8) : ranked.getName();
-            inventory.setItem(slots.get(index), createConfiguredItem(topSection == null ? null : topSection.getConfigurationSection("player-item"), "PLAYER_HEAD", 1, "&d#{position} &f{player}", List.of("&7Saldo: &f{balance} {cosmo}"), Map.of("position", String.valueOf(actualPage * slots.size() + index + 1), "player", name, "balance", String.valueOf(entry.getValue()), "cosmo", cosmo.getDisplayName())));
+            Map<String, String> playerReplacements = cosmoReplacements(cosmo, NumberFormatUtil.format(entry.getValue()));
+            playerReplacements.put("position", String.valueOf(actualPage * slots.size() + index + 1));
+            playerReplacements.put("player", name);
+            playerReplacements.put("balance", NumberFormatUtil.format(entry.getValue()));
+            inventory.setItem(slots.get(index), createConfiguredItem(topSection == null ? null : topSection.getConfigurationSection("player-item"), "PLAYER_HEAD", 1, "&d#{position} &f{player}", List.of("&7Saldo: &f{balance} {cosmo-name}"), playerReplacements));
         }
         Map<Integer, Runnable> actions = new HashMap<>();
         ConfigurationSection previousSection = topSection == null ? null : topSection.getConfigurationSection("previous-page");
@@ -456,10 +486,25 @@ public final class MenuManager {
     }
 
     private String replace(String value, Map<String, String> replacements) {
+        String cosmoBalance = replacements.get("cosmo-balance");
+        if (cosmoBalance != null) {
+            value = value.replace("%cosmos_<cosmo>%", cosmoBalance);
+        }
         for (Map.Entry<String, String> entry : replacements.entrySet()) {
             value = value.replace("{" + entry.getKey() + "}", entry.getValue());
         }
         return value;
+    }
+
+    private Map<String, String> cosmoReplacements(CosmoDefinition cosmo, String balance) {
+        Map<String, String> replacements = new HashMap<>();
+        replacements.put("cosmo", cosmo.getDisplayName());
+        replacements.put("cosmo-name", cosmo.getDisplayName());
+        replacements.put("cosmo-id", cosmo.getId());
+        if (balance != null) {
+            replacements.put("cosmo-balance", balance);
+        }
+        return replacements;
     }
 
     private List<String> replace(List<String> values, Map<String, String> replacements) {
@@ -736,7 +781,7 @@ public final class MenuManager {
         player.getInventory().addItem(menuItem.getItem().clone());
         String itemName = menuItem.getItem().hasItemMeta() && menuItem.getItem().getItemMeta().hasDisplayName()
             ? menuItem.getItem().getItemMeta().getDisplayName() : menuItem.getItem().getType().name();
-        send(player, "payment-success", Map.of("amount", String.valueOf(menuItem.getItem().getAmount()), "item", itemName, "price", String.valueOf(menuItem.getPrice()), "cosmo", ColorUtil.color(cosmo.getDisplayName())));
+        send(player, "payment-success", Map.of("amount", String.valueOf(menuItem.getItem().getAmount()), "item", itemName, "price", NumberFormatUtil.format(menuItem.getPrice()), "cosmo", ColorUtil.color(cosmo.getDisplayName())));
     }
 
     private ItemStack createItem(String materialName, int amount, String name, List<String> lore) {

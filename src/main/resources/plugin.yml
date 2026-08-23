@@ -15,6 +15,10 @@ commands:
     description: Administra los cosmos y sus menús.
     aliases: [cosmos]
     usage: /cosmo help
+  conditions:
+    description: Administra condiciones que retiran cosmos.
+    aliases: [condition]
+    usage: /conditions help
 permissions:
   cosmos.admin:
     description: Permite administrar cosmos, saldos y menús.
@@ -25,3 +29,6 @@ permissions:
   cosmos.view:
     description: Permite consultar los menús y saldos propios.
     default: true
+  cosmos.conditions:
+    description: Permite administrar condiciones que retiran cosmos.
+    default: op

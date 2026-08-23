@@ -5,13 +5,15 @@ import com.devpapo.cosmosapi.cosmo.CosmosService;
 import me.gypopo.economyshopgui.api.objects.ExternalEconomy;
 import org.bukkit.OfflinePlayer;
 
+import java.util.Locale;
+
 public final class CosmosExternalEconomy extends ExternalEconomy {
     private final CosmosService cosmosService;
     private final String cosmoId;
 
     public CosmosExternalEconomy(CosmosService cosmosService, String cosmoId) {
         this.cosmosService = cosmosService;
-        this.cosmoId = cosmoId;
+        this.cosmoId = cosmoId.toLowerCase(Locale.ROOT);
     }
 
     @Override

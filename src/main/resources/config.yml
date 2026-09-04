@@ -7,7 +7,8 @@ anti-alt:
   same-ip-player-kill: false
 
 menus:
-  # Habilita las interfaces, tiendas y comandos públicos de menús.
+  # Habilita las tiendas y comandos públicos configurados en menus.yml.
+  # /cosmo view y /cosmo tops permanecen disponibles aunque esté desactivado.
   enabled: false
 
 holograms:

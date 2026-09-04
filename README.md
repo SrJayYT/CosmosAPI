@@ -44,7 +44,7 @@ El primer comando crea el ID interno `gemas`. El segundo define el nombre que ve
 | Plugin | Para qué sirve |
 | --- | --- |
 | PlaceholderAPI | Usar `%cosmos_...%` en otros plugins, TAB y menús. |
-| EconomyShopGUI | Comprar y vender usando cosmos como moneda. |
+| EconomyShopGUI `7.2.1` | Comprar y vender usando cosmos como moneda. |
 | DecentHolograms | Crear hologramas de rankings. |
 | TAB | Mostrar los placeholders de CosmosAPI en scoreboards o tablist. |
 
@@ -422,11 +422,11 @@ cosmo-item:
 
 `%cosmos_<cosmo>%` es un marcador especial dentro de esa vista: se sustituye por el ID del cosmo que representa cada ítem. Para referirte a un cosmo concreto, usa directamente `%cosmos_gemas%`.
 
-## EconomyShopGUI
+## EconomyShopGUI 7.2.1
 
-EconomyShopGUI puede usar cualquier cosmo como moneda externa para **comprar y vender**. Esta integración no depende de los menús internos de CosmosAPI.
+CosmosAPI es compatible con **EconomyShopGUI 7.2.1** y puede usar cualquier cosmo como moneda externa para **comprar y vender**. Esta integración no depende de los menús internos de CosmosAPI.
 
-> Puedes mantener `menus.enabled: false` y usar normalmente los menús de EconomyShopGUI. Esa opción solo desactiva `/cosmo view`, `/cosmo menus`, `/cosmo tops` y las tiendas internas de CosmosAPI.
+> Puedes mantener `menus.enabled: false` y usar normalmente los menús de EconomyShopGUI. Esa opción solo desactiva las tiendas y los comandos públicos configurados en `menus.yml`; no desactiva `/cosmo view` ni `/cosmo tops`.
 
 ### Configurar una moneda Cosmos
 
@@ -451,21 +451,34 @@ EconomyShopGUI puede usar cualquier cosmo como moneda externa para **comprar y v
 Para el cosmo cuyo ID es `gemas`:
 
 ```yml
-items:
-  diamond_sword:
-    material: DIAMOND_SWORD
-    buy-price: 25
-    sell-price: 10
-    economy: EXTERNAL:CosmosAPI_gemas
+pages:
+  page1:
+    items:
+      '10':
+        material: FIREWORK_ROCKET
+        buy: 5
+        sell: 2
+        economy: EXTERNAL:CosmosAPI_gemas
 ```
 
 Resultado:
 
-- Comprar una espada cuesta **25 Gemas**.
-- Vender una espada entrega **10 Gemas**.
+- Comprar un cohete cuesta **5 Gemas**.
+- Vender un cohete entrega **2 Gemas**.
 - El artículo no utiliza el dinero de Vault.
 
-Los precios de cosmos deben ser números enteros no negativos. Los decimales se rechazan para impedir redondeos inesperados al cobrar o pagar. Si EconomyShopGUI no reconoce una moneda, comprueba que el ID sea correcto, que el cosmo exista y ejecuta `/sreload`.
+En EconomyShopGUI `7.2.1`, usa exclusivamente `buy:` y `sell:` como el resto de artículos de la tienda. No uses `buy-price` ni `sell-price` para los artículos de CosmosAPI. Tampoco escribas `buy-price::` o `sell-price::`: el doble `:` invalida el precio y EconomyShopGUI mostrará el objeto sin opciones de compra o venta.
+
+Para un artículo que solo se pueda comprar, omite `sell:`:
+
+```yml
+'10':
+  material: FIREWORK_ROCKET
+  buy: 5
+  economy: EXTERNAL:CosmosAPI_test
+```
+
+Los precios de cosmos deben ser números enteros no negativos. Los decimales se rechazan para impedir redondeos inesperados al cobrar o pagar. Si EconomyShopGUI no reconoce una moneda, comprueba que el ID sea correcto, que el cosmo exista y ejecuta `/cosmo reload` seguido de `/sreload`.
 
 ## Hologramas
 

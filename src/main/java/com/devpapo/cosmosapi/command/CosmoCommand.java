@@ -410,10 +410,6 @@ public final class CosmoCommand implements CommandExecutor, TabCompleter {
     }
 
     private void view(CommandSender sender) {
-        if (!plugin.areMenusEnabled()) {
-            message(sender, "menus-disabled", Map.of());
-            return;
-        }
         if (!sender.hasPermission("cosmos.view")) {
             message(sender, "no-permission", Map.of());
             return;
@@ -469,10 +465,6 @@ public final class CosmoCommand implements CommandExecutor, TabCompleter {
     }
 
     private void tops(CommandSender sender) {
-        if (!plugin.areMenusEnabled()) {
-            message(sender, "menus-disabled", Map.of());
-            return;
-        }
         if (!sender.hasPermission("cosmos.view")) {
             message(sender, "no-permission", Map.of());
             return;

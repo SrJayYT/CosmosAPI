@@ -56,7 +56,7 @@ public final class EconomyShopGUIListener implements Listener {
         }
         String cosmoId = currency.substring(prefix.length()).toLowerCase(Locale.ROOT);
         CosmoDefinition cosmo = cosmosService.getCosmo(cosmoId);
-        if (cosmo == null) {
+        if (cosmo == null || !cosmo.isEnabled()) {
             return false;
         }
         if (!Double.isFinite(price) || price < 0D || price > Long.MAX_VALUE || price != Math.rint(price)) {

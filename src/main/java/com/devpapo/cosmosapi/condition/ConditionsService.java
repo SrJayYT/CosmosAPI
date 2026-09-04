@@ -112,7 +112,7 @@ public final class ConditionsService {
 
     public void apply(UUID playerId, CosmosTrigger trigger) {
         for (ConditionDefinition definition : conditions.values()) {
-            if (definition.getTrigger() == trigger) {
+            if (definition.getTrigger() == trigger && cosmosService.getCosmo(definition.getCosmoId()) != null && cosmosService.getCosmo(definition.getCosmoId()).isEnabled()) {
                 cosmosService.adjustBalance(playerId, definition.getCosmoId(), -definition.getAmount());
             }
         }

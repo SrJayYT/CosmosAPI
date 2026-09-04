@@ -6,13 +6,15 @@ public final class CosmoDefinition {
     private final CosmosTrigger trigger;
     private final long reward;
     private final long timeIntervalMillis;
+    private final boolean enabled;
 
-    public CosmoDefinition(String id, String displayName, CosmosTrigger trigger, long reward, long timeIntervalMillis) {
+    public CosmoDefinition(String id, String displayName, CosmosTrigger trigger, long reward, long timeIntervalMillis, boolean enabled) {
         this.id = id;
         this.displayName = displayName;
         this.trigger = trigger;
         this.reward = reward;
         this.timeIntervalMillis = timeIntervalMillis;
+        this.enabled = enabled;
     }
 
     public String getId() {
@@ -33,5 +35,9 @@ public final class CosmoDefinition {
 
     public long getTimeIntervalMillis() {
         return timeIntervalMillis;
+    }
+
+    public boolean isEnabled() {
+        return enabled;
     }
 }

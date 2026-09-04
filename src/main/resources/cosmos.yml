@@ -4,5 +4,6 @@ cosmos:
     display-name: '&dAnormal'
     type: TIME
     reward: 1
+    enabled: true
     interval: 1
     unit: MINUTE

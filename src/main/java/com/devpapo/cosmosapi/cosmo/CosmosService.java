@@ -42,7 +42,7 @@ public final class CosmosService {
                         continue;
                     }
                 }
-                cosmos.put(normalize(id), new CosmoDefinition(id, section.getString("display-name", id), trigger, reward, interval));
+                cosmos.put(normalize(id), new CosmoDefinition(id, section.getString("display-name", id), trigger, reward, interval, section.getBoolean("enabled", true)));
             }
         }
     }
@@ -64,12 +64,13 @@ public final class CosmosService {
         storage.getCosmos().set(path + ".display-name", "&d" + id);
         storage.getCosmos().set(path + ".type", trigger.name());
         storage.getCosmos().set(path + ".reward", reward);
+        storage.getCosmos().set(path + ".enabled", true);
         if (trigger == CosmosTrigger.TIME) {
             storage.getCosmos().set(path + ".interval", interval);
             storage.getCosmos().set(path + ".unit", unit.name());
         }
         storage.saveCosmos();
-        cosmos.put(key, new CosmoDefinition(key, "&d" + id, trigger, reward, timeIntervalMillis));
+        cosmos.put(key, new CosmoDefinition(key, "&d" + id, trigger, reward, timeIntervalMillis, true));
         return true;
     }
 
@@ -91,7 +92,7 @@ public final class CosmosService {
         }
         storage.getCosmos().set("cosmos." + definition.getId() + ".display-name", displayName);
         storage.saveCosmos();
-        cosmos.put(normalize(definition.getId()), new CosmoDefinition(definition.getId(), displayName, definition.getTrigger(), definition.getReward(), definition.getTimeIntervalMillis()));
+        cosmos.put(normalize(definition.getId()), new CosmoDefinition(definition.getId(), displayName, definition.getTrigger(), definition.getReward(), definition.getTimeIntervalMillis(), definition.isEnabled()));
         return true;
     }
 
@@ -111,7 +112,7 @@ public final class CosmosService {
             storage.getCosmos().set(path + ".unit", null);
         }
         storage.saveCosmos();
-        cosmos.put(normalize(definition.getId()), new CosmoDefinition(definition.getId(), definition.getDisplayName(), trigger, definition.getReward(), intervalMillis));
+        cosmos.put(normalize(definition.getId()), new CosmoDefinition(definition.getId(), definition.getDisplayName(), trigger, definition.getReward(), intervalMillis, definition.isEnabled()));
         return true;
     }
 
@@ -122,7 +123,7 @@ public final class CosmosService {
         }
         storage.getCosmos().set("cosmos." + definition.getId() + ".reward", reward);
         storage.saveCosmos();
-        cosmos.put(normalize(definition.getId()), new CosmoDefinition(definition.getId(), definition.getDisplayName(), definition.getTrigger(), reward, definition.getTimeIntervalMillis()));
+        cosmos.put(normalize(definition.getId()), new CosmoDefinition(definition.getId(), definition.getDisplayName(), definition.getTrigger(), reward, definition.getTimeIntervalMillis(), definition.isEnabled()));
         return true;
     }
 
@@ -141,7 +142,18 @@ public final class CosmosService {
         storage.getCosmos().set(path + ".interval", interval);
         storage.getCosmos().set(path + ".unit", unit.name());
         storage.saveCosmos();
-        cosmos.put(normalize(definition.getId()), new CosmoDefinition(definition.getId(), definition.getDisplayName(), definition.getTrigger(), definition.getReward(), intervalMillis));
+        cosmos.put(normalize(definition.getId()), new CosmoDefinition(definition.getId(), definition.getDisplayName(), definition.getTrigger(), definition.getReward(), intervalMillis, definition.isEnabled()));
+        return true;
+    }
+
+    public boolean setEnabled(String id, boolean enabled) {
+        CosmoDefinition definition = getCosmo(id);
+        if (definition == null) {
+            return false;
+        }
+        storage.getCosmos().set("cosmos." + definition.getId() + ".enabled", enabled);
+        storage.saveCosmos();
+        cosmos.put(normalize(definition.getId()), new CosmoDefinition(definition.getId(), definition.getDisplayName(), definition.getTrigger(), definition.getReward(), definition.getTimeIntervalMillis(), enabled));
         return true;
     }
 
@@ -173,7 +185,8 @@ public final class CosmosService {
     }
 
     public void deposit(UUID playerId, String cosmoId, long amount) {
-        if (amount > 0L && getCosmo(cosmoId) != null) {
+        CosmoDefinition cosmo = getCosmo(cosmoId);
+        if (amount > 0L && cosmo != null && cosmo.isEnabled()) {
             setBalance(playerId, cosmoId, addSafely(getBalance(playerId, cosmoId), amount));
         }
     }
@@ -185,7 +198,8 @@ public final class CosmosService {
     }
 
     public boolean withdraw(UUID playerId, String cosmoId, long amount) {
-        if (amount <= 0L) {
+        CosmoDefinition cosmo = getCosmo(cosmoId);
+        if (amount <= 0L || cosmo == null || !cosmo.isEnabled()) {
             return false;
         }
         long balance = getBalance(playerId, cosmoId);
@@ -197,7 +211,8 @@ public final class CosmosService {
     }
 
     public long withdrawUpTo(UUID playerId, String cosmoId, long amount) {
-        if (amount <= 0L || getCosmo(cosmoId) == null) {
+        CosmoDefinition cosmo = getCosmo(cosmoId);
+        if (amount <= 0L || cosmo == null || !cosmo.isEnabled()) {
             return 0L;
         }
         long withdrawn = Math.min(getBalance(playerId, cosmoId), amount);
@@ -208,14 +223,14 @@ public final class CosmosService {
     }
 
     public boolean transfer(UUID senderId, UUID recipientId, String cosmoId, long amount) {
-        if (amount <= 0L || senderId.equals(recipientId) || getCosmo(cosmoId) == null) {
+        CosmoDefinition cosmo = getCosmo(cosmoId);
+        if (amount <= 0L || senderId.equals(recipientId) || cosmo == null || !cosmo.isEnabled()) {
             return false;
         }
         long senderBalance = getBalance(senderId, cosmoId);
         if (senderBalance < amount) {
             return false;
         }
-        CosmoDefinition cosmo = getCosmo(cosmoId);
         long recipientBalance = getBalance(recipientId, cosmoId);
         if (recipientBalance > Long.MAX_VALUE - amount) {
             return false;
@@ -252,7 +267,7 @@ public final class CosmosService {
 
     public void reward(UUID playerId, CosmosTrigger trigger) {
         for (CosmoDefinition definition : cosmos.values()) {
-            if (definition.getTrigger() == trigger) {
+            if (definition.isEnabled() && definition.getTrigger() == trigger) {
                 deposit(playerId, definition.getId(), definition.getReward());
             }
         }
@@ -262,7 +277,7 @@ public final class CosmosService {
         long now = System.currentTimeMillis();
         boolean changed = false;
         for (CosmoDefinition definition : cosmos.values()) {
-            if (definition.getTrigger() != CosmosTrigger.TIME) {
+            if (!definition.isEnabled() || definition.getTrigger() != CosmosTrigger.TIME) {
                 continue;
             }
             String path = "players." + playerId + ".last-time-rewards." + definition.getId();

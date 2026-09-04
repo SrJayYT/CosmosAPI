@@ -78,6 +78,9 @@ public final class CosmoCommand implements CommandExecutor, TabCompleter {
             case "list":
                 list(sender);
                 return true;
+            case "status":
+                status(sender, args);
+                return true;
             case "tops":
                 tops(sender);
                 return true;
@@ -438,9 +441,31 @@ public final class CosmoCommand implements CommandExecutor, TabCompleter {
                 "cosmo", cosmo.getId(),
                 "display-name", ColorUtil.color(cosmo.getDisplayName()),
                 "trigger", cosmo.getTrigger().name(),
-                "reward", NumberFormatUtil.format(cosmo.getReward())
+                "reward", NumberFormatUtil.format(cosmo.getReward()),
+                "status", cosmo.isEnabled() ? "&aActivado" : "&cDesactivado"
             ));
         }
+    }
+
+    private void status(CommandSender sender, String[] args) {
+        if (!admin(sender) || args.length != 3) {
+            usage(sender, "/cosmo status <cosmo> <enable|disable>");
+            return;
+        }
+        boolean enabled;
+        if (args[2].equalsIgnoreCase("enable") || args[2].equalsIgnoreCase("enabled")) {
+            enabled = true;
+        } else if (args[2].equalsIgnoreCase("disable") || args[2].equalsIgnoreCase("disabled")) {
+            enabled = false;
+        } else {
+            usage(sender, "/cosmo status <cosmo> <enable|disable>");
+            return;
+        }
+        if (!cosmosService.setEnabled(args[1], enabled)) {
+            message(sender, "unknown-cosmo", Map.of("cosmo", args[1]));
+            return;
+        }
+        message(sender, enabled ? "cosmo-enabled" : "cosmo-disabled", Map.of("cosmo", args[1]));
     }
 
     private void tops(CommandSender sender) {
@@ -596,7 +621,7 @@ public final class CosmoCommand implements CommandExecutor, TabCompleter {
         String displayName = ColorUtil.color(cosmo.getDisplayName());
         int recipients = 0;
         for (Player player : Bukkit.getOnlinePlayers()) {
-            cosmosService.deposit(player.getUniqueId(), cosmo.getId(), value);
+            cosmosService.adjustBalance(player.getUniqueId(), cosmo.getId(), value);
             recipients++;
         }
         Map<String, String> replacements = Map.of(
@@ -708,11 +733,14 @@ public final class CosmoCommand implements CommandExecutor, TabCompleter {
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         if (args.length == 1) {
-            return complete(args[0], Arrays.asList("create", "edit", "displayname", "delete", "menu", "menus", "hologram", "reload", "view", "list", "tops", "balance", "baltop", "send", "give", "giveall", "set", "help"));
+            return complete(args[0], Arrays.asList("create", "edit", "displayname", "delete", "menu", "menus", "hologram", "reload", "view", "list", "status", "tops", "balance", "baltop", "send", "give", "giveall", "set", "help"));
         }
         String root = args[0].toLowerCase(Locale.ROOT);
-        if ((root.equals("edit") || root.equals("displayname") || root.equals("delete") || root.equals("balance") || root.equals("baltop") || root.equals("send") || root.equals("give") || root.equals("giveall") || root.equals("set")) && args.length == 2) {
+        if ((root.equals("edit") || root.equals("displayname") || root.equals("delete") || root.equals("status") || root.equals("balance") || root.equals("baltop") || root.equals("send") || root.equals("give") || root.equals("giveall") || root.equals("set")) && args.length == 2) {
             return complete(args[1], cosmoIds());
+        }
+        if (root.equals("status") && args.length == 3) {
+            return complete(args[2], Arrays.asList("enable", "disable"));
         }
         if (root.equals("edit") && args.length == 3) {
             return complete(args[2], Arrays.asList("displayname", "type", "reward", "interval"));

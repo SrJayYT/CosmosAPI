@@ -45,6 +45,10 @@ public final class CosmosPlaceholderExpansion extends PlaceholderExpansion {
         if (params.equalsIgnoreCase("cosmos")) {
             return cosmosService.getCosmos().stream().map(CosmoDefinition::getId).collect(Collectors.joining(", "));
         }
+        String normalized = params.toLowerCase();
+        if (normalized.startsWith("balance_")) {
+            params = params.substring("balance_".length());
+        }
         if (params.toLowerCase().endsWith("_displayname")) {
             String id = params.substring(0, params.length() - "_displayname".length());
             CosmoDefinition cosmo = cosmosService.getCosmo(id);

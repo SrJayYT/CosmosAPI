@@ -67,9 +67,9 @@ public final class CosmosExternalEconomy extends ExternalEconomy {
     }
 
     private long toWholeAmount(double amount) {
-        if (!Double.isFinite(amount) || amount <= 0D || amount > Long.MAX_VALUE) {
+        if (!Double.isFinite(amount) || amount <= 0D || amount > Long.MAX_VALUE || amount != Math.rint(amount)) {
             return 0L;
         }
-        return (long) Math.ceil(amount);
+        return (long) amount;
     }
 }

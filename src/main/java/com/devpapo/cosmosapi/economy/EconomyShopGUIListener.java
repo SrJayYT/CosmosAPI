@@ -29,26 +29,24 @@ public final class EconomyShopGUIListener implements Listener {
 
     @EventHandler(ignoreCancelled = true)
     public void onPreTransaction(PreTransactionEvent event) {
-        if (Transaction.Mode.getFromType(event.getTransactionType()) != Transaction.Mode.BUY) {
-            return;
-        }
+        boolean isBuy = Transaction.Mode.getFromType(event.getTransactionType()) == Transaction.Mode.BUY;
         Map<EcoType, Double> prices = event.getPrices();
         if (prices.isEmpty()) {
-            if (!hasEnoughCosmos(event.getPlayer().getUniqueId(), event.getShopItem().getEcoType(), event.getPrice())) {
+            if (!isValidCosmosTransaction(event.getPlayer().getUniqueId(), event.getShopItem().getEcoType(), event.getPrice(), isBuy)) {
                 event.setCancelled(true);
             }
             return;
         }
         for (Map.Entry<EcoType, Double> price : prices.entrySet()) {
-            if (!hasEnoughCosmos(event.getPlayer().getUniqueId(), price.getKey(), price.getValue())) {
+            if (!isValidCosmosTransaction(event.getPlayer().getUniqueId(), price.getKey(), price.getValue(), isBuy)) {
                 event.setCancelled(true);
                 return;
             }
         }
     }
 
-    private boolean hasEnoughCosmos(java.util.UUID playerId, EcoType economy, double price) {
-        if (economy.getType() != EconomyType.EXTERNAL || price < 0D) {
+    private boolean isValidCosmosTransaction(java.util.UUID playerId, EcoType economy, double price, boolean isBuy) {
+        if (economy.getType() != EconomyType.EXTERNAL) {
             return true;
         }
         String currency = economy.getCurrency();
@@ -61,10 +59,10 @@ public final class EconomyShopGUIListener implements Listener {
         if (cosmo == null) {
             return false;
         }
-        if (!Double.isFinite(price) || price > Long.MAX_VALUE) {
+        if (!Double.isFinite(price) || price < 0D || price > Long.MAX_VALUE || price != Math.rint(price)) {
             return false;
         }
-        long amount = (long) Math.ceil(price);
-        return amount <= 0L || cosmosService.getBalance(playerId, cosmo.getId()) >= amount;
+        long amount = (long) price;
+        return !isBuy || amount == 0L || cosmosService.getBalance(playerId, cosmo.getId()) >= amount;
     }
 }

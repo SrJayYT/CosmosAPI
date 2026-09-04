@@ -60,7 +60,7 @@ balance-set: '&aHas establecido el saldo de &f{player} &aa &f{amount} {cosmo}&a.
 balance-adjusted: '&aSaldo de &f{player} &aajustado en &f{amount} {cosmo}&a.'
 balance-adjusted-target: '&eTu saldo de {cosmo} &ese ajustó en &f{amount}&e.'
 giveall-success: '&aHas entregado &f{amount} {cosmo} &aa los &f{players} &ajugadores conectados.'
-giveall-announcement: '&8&m----------------------------------------\n&d&l✦ REGALO GLOBAL ✦\n&fHas recibido &d{amount} {cosmo}&f.\n&8&m----------------------------------------'
+giveall-announcement: "&8&m----------------------------------------\n&d&l✦ REGALO GLOBAL ✦\n&fHas recibido &d{amount} {cosmo}&f.\n&8&m----------------------------------------"
 usage: '&cUso: {usage}'
 no-conditions: '&eNo hay condiciones configuradas.'
 unknown-condition: '&cLa condición &f{condition} &cno existe.'

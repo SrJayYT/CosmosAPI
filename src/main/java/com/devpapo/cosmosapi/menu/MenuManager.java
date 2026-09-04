@@ -1,6 +1,8 @@
 package com.devpapo.cosmosapi.menu;
 
 import com.cryptomorin.xseries.XMaterial;
+import com.cryptomorin.xseries.profiles.builder.XSkull;
+import com.cryptomorin.xseries.profiles.objects.Profileable;
 import com.devpapo.cosmosapi.CosmosAPI;
 import com.devpapo.cosmosapi.cosmo.CosmoDefinition;
 import com.devpapo.cosmosapi.cosmo.CosmosService;
@@ -336,67 +338,72 @@ public final class MenuManager {
 
     public void openCosmosView(Player player, int page) {
         List<CosmoDefinition> cosmos = cosmosService.getCosmos();
-        ConfigurationSection viewSection = storage.getMenus().getConfigurationSection("view");
-        int size = getChestSize(viewSection, 27);
-        List<Integer> cosmoSlots = getSlots(viewSection, "cosmo-slots", defaultSlots(0, 21), size);
+        int size = 45;
+        List<Integer> cosmoSlots = List.of(10, 11, 12, 13, 14, 15, 16, 19, 20, 21, 22, 23, 24, 25);
         int maxPage = Math.max(0, (cosmos.size() - 1) / Math.max(1, cosmoSlots.size()));
         int actualPage = Math.max(0, Math.min(page, maxPage));
-        String title = viewSection == null ? "&8Tus Cosmos" : viewSection.getString("title", "&8Tus Cosmos");
-        Inventory inventory = Bukkit.createInventory(null, size, ColorUtil.color(replacePlaceholders(player, replace(title, Map.of("page", String.valueOf(actualPage + 1))))));
-        loadStaticItems(player, inventory, viewSection);
+        Inventory inventory = Bukkit.createInventory(null, size, ColorUtil.color("&8✦ &b&lTUS COSMOS &8• &7Página &f" + (actualPage + 1)));
+        loadViewDecoration(player, inventory);
         Map<Integer, Runnable> actions = new HashMap<>();
         for (int index = 0; index < cosmoSlots.size() && actualPage * cosmoSlots.size() + index < cosmos.size(); index++) {
             CosmoDefinition cosmo = cosmos.get(actualPage * cosmoSlots.size() + index);
             long balance = cosmosService.getBalance(player.getUniqueId(), cosmo.getId());
-            ItemStack icon = createConfiguredItem(player, viewSection == null ? null : viewSection.getConfigurationSection("cosmo-item"), "NETHER_STAR", 1, "{cosmo-name}", List.of("&7Saldo: &f%cosmos_<cosmo>%"), cosmoReplacements(cosmo, NumberFormatUtil.format(balance)));
+            ItemStack icon = createConfiguredItem(player, null, "ECHO_SHARD", 1, "&b&l{cosmo-name}", List.of("&8━━━━━━━━━━━━━━━━━━", "&7Tu saldo actual", " ", "&f{balance} &b{cosmo-name}", " ", "&8ID: &7{cosmo-id}", "&8━━━━━━━━━━━━━━━━━━"), cosmoReplacements(cosmo, NumberFormatUtil.format(balance)));
             inventory.setItem(cosmoSlots.get(index), icon);
         }
-        ConfigurationSection previousSection = viewSection == null ? null : viewSection.getConfigurationSection("previous-page");
-        int previousSlot = getSlot(previousSection, 21, size);
-        if (actualPage > 0 && previousSlot >= 0) {
-            inventory.setItem(previousSlot, createConfiguredItem(player, previousSection, "ARROW", 1, "&ePágina anterior", List.of(), Map.of("page", String.valueOf(actualPage))));
-            actions.put(previousSlot, () -> openCosmosView(player, actualPage - 1));
+        if (actualPage > 0) {
+            inventory.setItem(36, createConfiguredItem(player, null, "ARROW", 1, "&c&l← Página anterior", List.of("&7Ir a la página &f{page}"), Map.of("page", String.valueOf(actualPage))));
+            actions.put(36, () -> openCosmosView(player, actualPage - 1));
         }
-        ConfigurationSection nextSection = viewSection == null ? null : viewSection.getConfigurationSection("next-page");
-        int nextSlot = getSlot(nextSection, 23, size);
-        if (actualPage < maxPage && nextSlot >= 0) {
-            inventory.setItem(nextSlot, createConfiguredItem(player, nextSection, "ARROW", 1, "&ePágina siguiente", List.of(), Map.of("page", String.valueOf(actualPage + 2))));
-            actions.put(nextSlot, () -> openCosmosView(player, actualPage + 1));
+        if (actualPage < maxPage) {
+            inventory.setItem(44, createConfiguredItem(player, null, "ARROW", 1, "&a&lPágina siguiente →", List.of("&7Ir a la página &f{page}"), Map.of("page", String.valueOf(actualPage + 2))));
+            actions.put(44, () -> openCosmosView(player, actualPage + 1));
         }
         buttons.put(inventory, actions);
         player.openInventory(inventory);
     }
 
     public void openTopSelection(Player player) {
-        ConfigurationSection selectionSection = storage.getMenus().getConfigurationSection("top-selection");
-        int size = getChestSize(selectionSection, 27);
-        List<Integer> slots = getSlots(selectionSection, "cosmo-slots", defaultSlots(0, size), size);
-        String title = selectionSection == null ? "&8Top de Cosmos" : selectionSection.getString("title", "&8Top de Cosmos");
-        Inventory inventory = Bukkit.createInventory(null, size, ColorUtil.color(replacePlaceholders(player, title)));
-        loadStaticItems(player, inventory, selectionSection);
+        openTopSelection(player, 0);
+    }
+
+    public void openTopSelection(Player player, int page) {
+        int size = 54;
+        List<Integer> slots = List.of(20, 21, 22, 23, 24, 29, 30, 31, 32, 33);
+        List<CosmoDefinition> cosmos = cosmosService.getCosmos();
+        int maxPage = Math.max(0, (cosmos.size() - 1) / Math.max(1, slots.size()));
+        int actualPage = Math.max(0, Math.min(page, maxPage));
+        Inventory inventory = Bukkit.createInventory(null, size, ColorUtil.color("&8✦ &b&lTOPS DE COSMOS &8• &7Página &f" + (actualPage + 1)));
+        loadTopSelectionDecoration(player, inventory);
         Map<Integer, Runnable> actions = new HashMap<>();
-        for (int index = 0; index < slots.size() && index < cosmosService.getCosmos().size(); index++) {
-            CosmoDefinition cosmo = cosmosService.getCosmos().get(index);
+        for (int index = 0; index < slots.size() && actualPage * slots.size() + index < cosmos.size(); index++) {
+            CosmoDefinition cosmo = cosmos.get(actualPage * slots.size() + index);
             int slot = slots.get(index);
             long balance = cosmosService.getBalance(player.getUniqueId(), cosmo.getId());
-            inventory.setItem(slot, createConfiguredItem(player, selectionSection == null ? null : selectionSection.getConfigurationSection("cosmo-item"), "NETHER_STAR", 1, "{cosmo-name}", List.of("&7Clic para ver el top 100."), cosmoReplacements(cosmo, NumberFormatUtil.format(balance))));
+            inventory.setItem(slot, createConfiguredItem(player, null, "NETHER_STAR", 1, "&e&lTOP &8• &b{cosmo-name}", List.of("&8━━━━━━━━━━━━━━━━━━", "&7Tu saldo: &f{balance}", " ", "&b▸ &7Haz clic para ver el ranking.", "&8━━━━━━━━━━━━━━━━━━"), cosmoReplacements(cosmo, NumberFormatUtil.format(balance))));
             actions.put(slot, () -> openTop(player, cosmo, 0));
+        }
+        if (actualPage > 0) {
+            inventory.setItem(45, createConfiguredItem(player, null, "ARROW", 1, "&c&l← Página anterior", List.of("&7Ir a la página &f{page}"), Map.of("page", String.valueOf(actualPage))));
+            actions.put(45, () -> openTopSelection(player, actualPage - 1));
+        }
+        if (actualPage < maxPage) {
+            inventory.setItem(53, createConfiguredItem(player, null, "ARROW", 1, "&a&lPágina siguiente →", List.of("&7Ir a la página &f{page}"), Map.of("page", String.valueOf(actualPage + 2))));
+            actions.put(53, () -> openTopSelection(player, actualPage + 1));
         }
         buttons.put(inventory, actions);
         player.openInventory(inventory);
     }
 
     private void openTop(Player player, CosmoDefinition cosmo, int page) {
-        ConfigurationSection topSection = storage.getMenus().getConfigurationSection("top");
-        int size = getChestSize(topSection, 27);
-        List<Integer> slots = getSlots(topSection, "player-slots", defaultSlots(0, 15), size);
+        int size = 54;
+        List<Integer> slots = List.of(10, 11, 12, 13, 14, 15, 16, 19, 20, 21, 22, 23, 24, 25, 28, 29, 30, 31, 32, 33, 34, 37, 38, 39, 40, 41, 42, 43);
         int maxPage = Math.max(0, (100 - 1) / Math.max(1, slots.size()));
         int actualPage = Math.max(0, Math.min(page, maxPage));
-        String title = topSection == null ? "&8Top: {cosmo-name}" : topSection.getString("title", "&8Top: {cosmo-name}");
         Map<String, String> titleReplacements = cosmoReplacements(cosmo, null);
         titleReplacements.put("page", String.valueOf(actualPage + 1));
-        Inventory inventory = Bukkit.createInventory(null, size, ColorUtil.color(replacePlaceholders(player, replace(title, titleReplacements))));
-        loadStaticItems(player, inventory, topSection);
+        Inventory inventory = Bukkit.createInventory(null, size, ColorUtil.color(replace("&8✦ &e&lTOP &8• &b{cosmo-name} &8• &7Página &f{page}", titleReplacements)));
+        loadTopDecoration(player, inventory);
         List<Map.Entry<UUID, Long>> topPlayers = cosmosService.getTop(cosmo.getId(), actualPage * slots.size(), slots.size());
         for (int index = 0; index < topPlayers.size(); index++) {
             Map.Entry<UUID, Long> entry = topPlayers.get(index);
@@ -406,29 +413,56 @@ public final class MenuManager {
             playerReplacements.put("position", String.valueOf(actualPage * slots.size() + index + 1));
             playerReplacements.put("player", name);
             playerReplacements.put("balance", NumberFormatUtil.format(entry.getValue()));
-            inventory.setItem(slots.get(index), createConfiguredItem(player, topSection == null ? null : topSection.getConfigurationSection("player-item"), "PLAYER_HEAD", 1, "&d#{position} &f{player}", List.of("&7Saldo: &f{balance} {cosmo-name}"), playerReplacements));
+            ItemStack displayItem = createConfiguredItem(player, null, "PLAYER_HEAD", 1, "&e#{position} &8• &f{player}", List.of("&8━━━━━━━━━━━━━━━━━━", "&7Saldo: &b{balance} &7{cosmo-name}", "&8━━━━━━━━━━━━━━━━━━"), playerReplacements);
+            ItemStack playerHead = XSkull.createItem().profile(Profileable.detect(name)).apply();
+            ItemMeta headMeta = playerHead.getItemMeta();
+            ItemMeta displayMeta = displayItem.getItemMeta();
+            if (headMeta != null && displayMeta != null) {
+                headMeta.setDisplayName(displayMeta.getDisplayName());
+                headMeta.setLore(displayMeta.getLore());
+                playerHead.setItemMeta(headMeta);
+            }
+            inventory.setItem(slots.get(index), playerHead);
         }
         Map<Integer, Runnable> actions = new HashMap<>();
-        ConfigurationSection previousSection = topSection == null ? null : topSection.getConfigurationSection("previous-page");
-        int previousSlot = getSlot(previousSection, 21, size);
-        if (actualPage > 0 && previousSlot >= 0) {
-            inventory.setItem(previousSlot, createConfiguredItem(player, previousSection, "ARROW", 1, "&ePágina anterior", List.of(), Map.of("page", String.valueOf(actualPage))));
-            actions.put(previousSlot, () -> openTop(player, cosmo, actualPage - 1));
+        if (actualPage > 0) {
+            inventory.setItem(45, createConfiguredItem(player, null, "ARROW", 1, "&c&l← Página anterior", List.of("&7Ir a la página &f{page}"), Map.of("page", String.valueOf(actualPage))));
+            actions.put(45, () -> openTop(player, cosmo, actualPage - 1));
         }
-        ConfigurationSection nextSection = topSection == null ? null : topSection.getConfigurationSection("next-page");
-        int nextSlot = getSlot(nextSection, 23, size);
-        if (actualPage < maxPage && nextSlot >= 0) {
-            inventory.setItem(nextSlot, createConfiguredItem(player, nextSection, "ARROW", 1, "&ePágina siguiente", List.of(), Map.of("page", String.valueOf(actualPage + 2))));
-            actions.put(nextSlot, () -> openTop(player, cosmo, actualPage + 1));
+        if (actualPage < maxPage) {
+            inventory.setItem(53, createConfiguredItem(player, null, "ARROW", 1, "&a&lPágina siguiente →", List.of("&7Ir a la página &f{page}"), Map.of("page", String.valueOf(actualPage + 2))));
+            actions.put(53, () -> openTop(player, cosmo, actualPage + 1));
         }
-        ConfigurationSection backSection = topSection == null ? null : topSection.getConfigurationSection("back");
-        int backSlot = getSlot(backSection, 26, size);
-        if (backSlot >= 0) {
-            inventory.setItem(backSlot, createConfiguredItem(player, backSection, "GUNPOWDER", 1, "&eVolver", List.of("&7Volver a la selección de cosmos."), Map.of()));
-            actions.put(backSlot, () -> openTopSelection(player));
-        }
+        inventory.setItem(49, createConfiguredItem(player, null, "NETHER_STAR", 1, "&b&lVolver a los Cosmos", List.of("&7Elegir otro ranking."), Map.of()));
+        actions.put(49, () -> openTopSelection(player));
         buttons.put(inventory, actions);
         player.openInventory(inventory);
+    }
+
+    private void loadViewDecoration(Player player, Inventory inventory) {
+        setDecoration(player, inventory, List.of(0, 1, 2, 3, 5, 6, 7, 8, 27, 28, 29, 30, 31, 32, 33, 34, 35), "CYAN_STAINED_GLASS_PANE");
+        setDecoration(player, inventory, List.of(9, 17, 18, 26, 36, 44), "BLACK_STAINED_GLASS_PANE");
+        setDecoration(player, inventory, List.of(37, 38, 39, 40, 41, 42, 43), "GRAY_STAINED_GLASS_PANE");
+        inventory.setItem(4, createConfiguredItem(player, null, "NETHER_STAR", 1, "&b&l✦ &fTus monedas virtuales &b&l✦", List.of("&7Consulta todos tus balances."), Map.of()));
+    }
+
+    private void loadTopSelectionDecoration(Player player, Inventory inventory) {
+        setDecoration(player, inventory, List.of(0, 1, 2, 3, 5, 6, 7, 8, 45, 46, 47, 48, 49, 50, 51, 52, 53), "BLUE_STAINED_GLASS_PANE");
+        setDecoration(player, inventory, List.of(9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 25, 26, 27, 28, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44), "BLACK_STAINED_GLASS_PANE");
+        inventory.setItem(4, createConfiguredItem(player, null, "NETHER_STAR", 1, "&e&l✦ &fRanking de Cosmos &e&l✦", List.of("&7Elige una moneda para ver su top."), Map.of()));
+    }
+
+    private void loadTopDecoration(Player player, Inventory inventory) {
+        setDecoration(player, inventory, List.of(0, 1, 2, 3, 5, 6, 7, 8), "YELLOW_STAINED_GLASS_PANE");
+        setDecoration(player, inventory, List.of(9, 17, 18, 26, 27, 35, 36, 44, 45, 53), "BLACK_STAINED_GLASS_PANE");
+        setDecoration(player, inventory, List.of(46, 47, 48, 50, 51, 52), "GRAY_STAINED_GLASS_PANE");
+        inventory.setItem(4, createConfiguredItem(player, null, "GOLD_INGOT", 1, "&e&l✦ &fMejores jugadores &e&l✦", List.of(), Map.of()));
+    }
+
+    private void setDecoration(Player player, Inventory inventory, List<Integer> slots, String material) {
+        for (int slot : slots) {
+            inventory.setItem(slot, createConfiguredItem(player, null, material, 1, " ", List.of(), Map.of()));
+        }
     }
 
     private int getChestSize(ConfigurationSection section, int defaultSize) {

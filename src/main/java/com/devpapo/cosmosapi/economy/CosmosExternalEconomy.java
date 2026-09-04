@@ -10,15 +10,21 @@ import java.util.Locale;
 public final class CosmosExternalEconomy extends ExternalEconomy {
     private final CosmosService cosmosService;
     private final String cosmoId;
+    private final String name;
 
     public CosmosExternalEconomy(CosmosService cosmosService, String cosmoId) {
+        this(cosmosService, "CosmosAPI_" + cosmoId, cosmoId);
+    }
+
+    public CosmosExternalEconomy(CosmosService cosmosService, String name, String cosmoId) {
         this.cosmosService = cosmosService;
+        this.name = name;
         this.cosmoId = cosmoId.toLowerCase(Locale.ROOT);
     }
 
     @Override
     public String getName() {
-        return "CosmosAPI_" + cosmoId;
+        return name;
     }
 
     @Override

@@ -24,6 +24,9 @@ public final class EconomyShopGUIListener implements Listener {
     public void onEconomyPreLoad(EconomyPreLoadEvent event) {
         for (CosmoDefinition cosmo : cosmosService.getCosmos()) {
             event.registerExternal(new CosmosExternalEconomy(cosmosService, cosmo.getId()));
+            if (cosmo.getId().equalsIgnoreCase("cosmo")) {
+                event.registerExternal(new CosmosExternalEconomy(cosmosService, "CosmosAPI", cosmo.getId()));
+            }
         }
     }
 
@@ -51,10 +54,14 @@ public final class EconomyShopGUIListener implements Listener {
         }
         String currency = economy.getCurrency();
         String prefix = "CosmosAPI_";
-        if (currency == null || !currency.regionMatches(true, 0, prefix, 0, prefix.length())) {
+        String cosmoId;
+        if (currency != null && currency.equalsIgnoreCase("CosmosAPI")) {
+            cosmoId = "cosmo";
+        } else if (currency != null && currency.regionMatches(true, 0, prefix, 0, prefix.length())) {
+            cosmoId = currency.substring(prefix.length()).toLowerCase(Locale.ROOT);
+        } else {
             return true;
         }
-        String cosmoId = currency.substring(prefix.length()).toLowerCase(Locale.ROOT);
         CosmoDefinition cosmo = cosmosService.getCosmo(cosmoId);
         if (cosmo == null || !cosmo.isEnabled()) {
             return false;

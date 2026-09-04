@@ -45,7 +45,7 @@
         <dependency>
             <groupId>com.gpplugins</groupId>
             <artifactId>EconomyShopGUI-API</artifactId>
-            <version>6.11.2</version>
+            <version>7.2.1</version>
             <scope>provided</scope>
         </dependency>
         <dependency>

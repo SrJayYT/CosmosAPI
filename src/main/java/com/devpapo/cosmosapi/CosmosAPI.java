@@ -85,9 +85,7 @@ public final class CosmosAPI extends JavaPlugin {
         runOptionalIntegration("DecentHolograms", hologramManager::start);
         startMemoryCleanupTask();
 
-        if (Bukkit.getPluginManager().getPlugin("EconomyShopGUI") != null) {
-            runOptionalIntegration("EconomyShopGUI", () -> Bukkit.getPluginManager().registerEvents(new EconomyShopGUIListener(cosmosService), this));
-        }
+        runOptionalIntegration("EconomyShopGUI", () -> Bukkit.getPluginManager().registerEvents(new EconomyShopGUIListener(cosmosService), this));
         if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
             runOptionalIntegration("PlaceholderAPI", () -> {
                 new CosmosPlaceholderExpansion(this, cosmosService, "cosmos").register();

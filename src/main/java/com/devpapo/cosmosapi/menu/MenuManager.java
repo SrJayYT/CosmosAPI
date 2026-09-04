@@ -335,10 +335,6 @@ public final class MenuManager {
     }
 
     public void openCosmosView(Player player, int page) {
-        if (!plugin.areMenusEnabled()) {
-            send(player, "menus-disabled", Map.of());
-            return;
-        }
         List<CosmoDefinition> cosmos = cosmosService.getCosmos();
         ConfigurationSection viewSection = storage.getMenus().getConfigurationSection("view");
         int size = getChestSize(viewSection, 27);
@@ -372,10 +368,6 @@ public final class MenuManager {
     }
 
     public void openTopSelection(Player player) {
-        if (!plugin.areMenusEnabled()) {
-            send(player, "menus-disabled", Map.of());
-            return;
-        }
         ConfigurationSection selectionSection = storage.getMenus().getConfigurationSection("top-selection");
         int size = getChestSize(selectionSection, 27);
         List<Integer> slots = getSlots(selectionSection, "cosmo-slots", defaultSlots(0, size), size);
@@ -386,7 +378,8 @@ public final class MenuManager {
         for (int index = 0; index < slots.size() && index < cosmosService.getCosmos().size(); index++) {
             CosmoDefinition cosmo = cosmosService.getCosmos().get(index);
             int slot = slots.get(index);
-            inventory.setItem(slot, createConfiguredItem(player, selectionSection == null ? null : selectionSection.getConfigurationSection("cosmo-item"), "NETHER_STAR", 1, "{cosmo-name}", List.of("&7Clic para ver el top 100."), cosmoReplacements(cosmo, null)));
+            long balance = cosmosService.getBalance(player.getUniqueId(), cosmo.getId());
+            inventory.setItem(slot, createConfiguredItem(player, selectionSection == null ? null : selectionSection.getConfigurationSection("cosmo-item"), "NETHER_STAR", 1, "{cosmo-name}", List.of("&7Clic para ver el top 100."), cosmoReplacements(cosmo, NumberFormatUtil.format(balance))));
             actions.put(slot, () -> openTop(player, cosmo, 0));
         }
         buttons.put(inventory, actions);
@@ -507,6 +500,8 @@ public final class MenuManager {
         String cosmoBalance = replacements.get("cosmo-balance");
         if (cosmoBalance != null) {
             value = value.replace("%cosmos_<cosmo>%", cosmoBalance)
+                .replace("%cosmos_balance_<cosmo>%", cosmoBalance)
+                .replace("%cosmosapi_<cosmo>%", cosmoBalance)
                 .replace("%cosmos_cosmo%", cosmoBalance);
         }
         for (Map.Entry<String, String> entry : replacements.entrySet()) {

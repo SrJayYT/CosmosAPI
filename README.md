@@ -245,9 +245,9 @@ Al activarlo, matar a un jugador con la misma IP no entrega recompensas `PLAYER_
 | `/cosmo balance <cosmo>` | Muestra tu saldo de ese cosmo sin abrir un menú. |
 | `/cosmo baltop <cosmo>` | Muestra los 15 mayores saldos del cosmo. |
 | `/cosmo send <cosmo> <jugador> <cantidad>` | Envía una cantidad positiva a un jugador conectado. |
-| `/cosmo view` | Abre la vista de balances internos. Requiere menús activados. |
+| `/cosmo view` | Abre la vista de balances internos. Disponible incluso con `menus.enabled: false`. |
 | `/cosmo menus [página]` | Abre el directorio de menús internos. Requiere menús activados. |
-| `/cosmo tops` | Abre el selector de rankings internos. Requiere menús activados. |
+| `/cosmo tops` | Abre el selector de rankings internos. Disponible incluso con `menus.enabled: false`. |
 
 Ejemplos:
 
@@ -420,7 +420,7 @@ cosmo-item:
     - '&7Jugador: &f%player_name%'
 ```
 
-`%cosmos_<cosmo>%` es un marcador especial dentro de esa vista: se sustituye por el ID del cosmo que representa cada ítem. Para referirte a un cosmo concreto, usa directamente `%cosmos_gemas%`.
+Para el saldo del Cosmo que representa cada ítem, usa `{balance}`. Para referirte a un cosmo concreto, usa directamente `%cosmos_gemas%`.
 
 ## EconomyShopGUI 7.2.1
 
@@ -444,7 +444,7 @@ CosmosAPI es compatible con **EconomyShopGUI 7.2.1** y puede usar cualquier cosm
    EXTERNAL:CosmosAPI_<id-del-cosmo>
    ```
 
-4. Recarga EconomyShopGUI con `/sreload`. Si acabas de cambiar cosmos desde CosmosAPI, ejecuta primero `/cosmo reload` y después `/sreload`.
+4. Reinicia el servidor una vez tras instalar o actualizar CosmosAPI. CosmosAPI se inicia antes que EconomyShopGUI para registrar `CosmosAPI_<id>` como economía externa. Después puedes recargar la configuración de EconomyShopGUI con `/sreload`.
 
 ### Ejemplo de artículo
 

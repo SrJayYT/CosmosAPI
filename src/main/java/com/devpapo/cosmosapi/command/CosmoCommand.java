@@ -7,6 +7,7 @@ import com.devpapo.cosmosapi.cosmo.CosmosTrigger;
 import com.devpapo.cosmosapi.cosmo.TimeRewardUnit;
 import com.devpapo.cosmosapi.hologram.HologramManager;
 import com.devpapo.cosmosapi.menu.MenuManager;
+import com.devpapo.cosmosapi.shop.CosmoShopManager;
 import com.devpapo.cosmosapi.util.ColorUtil;
 import com.devpapo.cosmosapi.util.NumberFormatUtil;
 import com.cryptomorin.xseries.XSound;
@@ -30,12 +31,14 @@ public final class CosmoCommand implements CommandExecutor, TabCompleter {
     private final CosmosAPI plugin;
     private final CosmosService cosmosService;
     private final MenuManager menuManager;
+    private final CosmoShopManager cosmoShopManager;
     private final HologramManager hologramManager;
 
-    public CosmoCommand(CosmosAPI plugin, CosmosService cosmosService, MenuManager menuManager, HologramManager hologramManager) {
+    public CosmoCommand(CosmosAPI plugin, CosmosService cosmosService, MenuManager menuManager, CosmoShopManager cosmoShopManager, HologramManager hologramManager) {
         this.plugin = plugin;
         this.cosmosService = cosmosService;
         this.menuManager = menuManager;
+        this.cosmoShopManager = cosmoShopManager;
         this.hologramManager = hologramManager;
     }
 
@@ -64,6 +67,10 @@ public final class CosmoCommand implements CommandExecutor, TabCompleter {
                 return true;
             case "menus":
                 menus(sender, args);
+                return true;
+            case "shop":
+            case "shops":
+                shop(sender, args);
                 return true;
             case "hologram":
             case "holograms":
@@ -341,6 +348,31 @@ public final class CosmoCommand implements CommandExecutor, TabCompleter {
             }
         }
         menuManager.openMenuDirectory((Player) sender, Math.max(0, page - 1));
+    }
+
+    private void shop(CommandSender sender, String[] args) {
+        if (!sender.hasPermission("cosmos.view")) {
+            message(sender, "no-permission", Map.of());
+            return;
+        }
+        if (!(sender instanceof Player)) {
+            message(sender, "player-only", Map.of());
+            return;
+        }
+        if (args.length == 1 || (args.length == 2 && args[1].equalsIgnoreCase("list"))) {
+            List<String> shops = cosmoShopManager.getShopIds();
+            if (shops.isEmpty()) {
+                message(sender, "no-cosmo-shops", Map.of());
+            } else {
+                message(sender, "cosmo-shops", Map.of("shops", String.join("&7, &f", shops)));
+            }
+            return;
+        }
+        if (args.length == 3 && args[1].equalsIgnoreCase("open")) {
+            cosmoShopManager.openShop((Player) sender, args[2]);
+            return;
+        }
+        usage(sender, "/cosmo shop [list|open <tienda>]");
     }
 
     private void hologram(CommandSender sender, String[] args) {
@@ -725,7 +757,7 @@ public final class CosmoCommand implements CommandExecutor, TabCompleter {
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         if (args.length == 1) {
-            return complete(args[0], Arrays.asList("create", "edit", "displayname", "delete", "menu", "menus", "hologram", "reload", "view", "list", "status", "tops", "balance", "baltop", "send", "give", "giveall", "set", "help"));
+            return complete(args[0], Arrays.asList("create", "edit", "displayname", "delete", "menu", "menus", "shop", "hologram", "reload", "view", "list", "status", "tops", "balance", "baltop", "send", "give", "giveall", "set", "help"));
         }
         String root = args[0].toLowerCase(Locale.ROOT);
         if ((root.equals("edit") || root.equals("displayname") || root.equals("delete") || root.equals("status") || root.equals("balance") || root.equals("baltop") || root.equals("send") || root.equals("give") || root.equals("giveall") || root.equals("set")) && args.length == 2) {
@@ -780,6 +812,12 @@ public final class CosmoCommand implements CommandExecutor, TabCompleter {
                     return complete(args[4], Collections.singletonList("5"));
                 }
             }
+        }
+        if ((root.equals("shop") || root.equals("shops")) && args.length == 2) {
+            return complete(args[1], Arrays.asList("list", "open"));
+        }
+        if ((root.equals("shop") || root.equals("shops")) && args.length == 3 && args[1].equalsIgnoreCase("open")) {
+            return complete(args[2], cosmoShopManager.getShopIds());
         }
         if (root.equals("hologram") || root.equals("holograms")) {
             if (args.length == 2) {

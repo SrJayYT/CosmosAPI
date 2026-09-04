@@ -1,0 +1,31 @@
+# Artículos de la sección general. Formato compatible con los campos básicos de EconomyShopGUI.
+# Click izquierdo compra; click derecho vende. buy o sell: -1 desactiva esa acción.
+enabled: true
+name: '&d&lTIENDA COSMOS'
+inventory: default
+
+items:
+  DIAMOND:
+    material: DIAMOND
+    amount: 1
+    name: '&b&lDiamante'
+    lore:
+      - '&7Un diamante brillante.'
+    buy: 10
+    sell: 5
+  GOLDEN_APPLE:
+    material: GOLDEN_APPLE
+    amount: 8
+    name: '&6&l8 Manzanas doradas'
+    lore:
+      - '&7Perfectas para combate.'
+    buy: 25
+    sell: 12
+  NETHERITE_INGOT:
+    material: NETHERITE_INGOT
+    amount: 1
+    name: '&8&lLingote de netherita'
+    lore:
+      - '&7Un recurso muy valioso.'
+    buy: 100
+    sell: 50

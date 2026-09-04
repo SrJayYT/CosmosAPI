@@ -3,6 +3,7 @@ package com.devpapo.cosmosapi;
 import com.devpapo.cosmosapi.command.CosmoCommand;
 import com.devpapo.cosmosapi.command.ConditionsCommand;
 import com.devpapo.cosmosapi.command.PublicMenuCommand;
+import com.devpapo.cosmosapi.command.PublicShopCommand;
 import com.devpapo.cosmosapi.condition.ConditionsService;
 import com.devpapo.cosmosapi.cosmo.CosmosService;
 import com.devpapo.cosmosapi.economy.EconomyShopGUIListener;
@@ -11,6 +12,8 @@ import com.devpapo.cosmosapi.listener.CosmoRewardListener;
 import com.devpapo.cosmosapi.menu.MenuListener;
 import com.devpapo.cosmosapi.menu.MenuManager;
 import com.devpapo.cosmosapi.placeholder.CosmosPlaceholderExpansion;
+import com.devpapo.cosmosapi.shop.CosmoShopListener;
+import com.devpapo.cosmosapi.shop.CosmoShopManager;
 import com.devpapo.cosmosapi.storage.CosmosStorage;
 import com.devpapo.cosmosapi.util.ColorUtil;
 import com.devpapo.cosmosapi.util.MessageManager;
@@ -31,6 +34,7 @@ public final class CosmosAPI extends JavaPlugin {
     private CosmosService cosmosService;
     private ConditionsService conditionsService;
     private MenuManager menuManager;
+    private CosmoShopManager cosmoShopManager;
     private HologramManager hologramManager;
     private MessageManager messageManager;
     private BukkitTask memoryCleanupTask;
@@ -49,15 +53,19 @@ public final class CosmosAPI extends JavaPlugin {
         saveResource("menus.yml", false);
         saveResource("players.yml", false);
         saveResource("messages.yml", false);
+        saveResource("inventory/default.yml", false);
+        saveResource("sections/general.yml", false);
+        saveResource("shops/general.yml", false);
 
         messageManager = new MessageManager(this);
         storage = new CosmosStorage(this);
         cosmosService = new CosmosService(storage);
         conditionsService = new ConditionsService(storage, cosmosService);
         menuManager = new MenuManager(this, storage, cosmosService);
+        cosmoShopManager = new CosmoShopManager(this, cosmosService);
         hologramManager = new HologramManager(this, storage, cosmosService);
 
-        CosmoCommand command = new CosmoCommand(this, cosmosService, menuManager, hologramManager);
+        CosmoCommand command = new CosmoCommand(this, cosmosService, menuManager, cosmoShopManager, hologramManager);
         PluginCommand cosmoCommand = getCommand("cosmo");
         if (cosmoCommand == null) {
             getLogger().severe("No se pudo registrar el comando /cosmo.");
@@ -81,6 +89,7 @@ public final class CosmosAPI extends JavaPlugin {
 
         Bukkit.getPluginManager().registerEvents(new CosmoRewardListener(this, cosmosService, conditionsService), this);
         Bukkit.getPluginManager().registerEvents(new MenuListener(menuManager), this);
+        Bukkit.getPluginManager().registerEvents(new CosmoShopListener(cosmoShopManager), this);
         menuManager.startTimeRewards();
         runOptionalIntegration("DecentHolograms", hologramManager::start);
         startMemoryCleanupTask();
@@ -114,6 +123,10 @@ public final class CosmosAPI extends JavaPlugin {
         return menuManager;
     }
 
+    public CosmoShopManager getCosmoShopManager() {
+        return cosmoShopManager;
+    }
+
     public HologramManager getHologramManager() {
         return hologramManager;
     }
@@ -136,6 +149,7 @@ public final class CosmosAPI extends JavaPlugin {
         storage.reload();
         cosmosService.reload();
         conditionsService.reload();
+        cosmoShopManager.reload();
         menuManager.restartTimeRewards();
         hologramManager.reload();
         restartMemoryCleanupTask();
@@ -207,6 +221,19 @@ public final class CosmosAPI extends JavaPlugin {
                 registeredMenuCommands.put(commandName, command);
             } else {
                 getLogger().warning("No se pudo registrar /" + commandName + " para el menú " + entry.getValue() + ".");
+            }
+        }
+        for (Map.Entry<String, String> entry : cosmoShopManager.getPublicShopCommands().entrySet()) {
+            String commandName = entry.getKey();
+            if (commandMap.getCommand(commandName) != null) {
+                getLogger().warning("No se registró /" + commandName + " para la tienda " + entry.getValue() + " porque ese comando ya existe.");
+                continue;
+            }
+            Command command = new PublicShopCommand(commandName, entry.getValue(), cosmoShopManager);
+            if (commandMap.register(getName().toLowerCase(), command)) {
+                registeredMenuCommands.put(commandName, command);
+            } else {
+                getLogger().warning("No se pudo registrar /" + commandName + " para la tienda " + entry.getValue() + ".");
             }
         }
         for (org.bukkit.entity.Player player : Bukkit.getOnlinePlayers()) {

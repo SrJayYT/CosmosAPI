@@ -4,7 +4,7 @@ CosmosAPI añade monedas virtuales configurables llamadas **cosmos**. Cada cosmo
 
 | Dato | Valor |
 | --- | --- |
-| Versión | `1.0.2` |
+| Versión | `1.0.3` |
 | Plataforma | Spigot/Paper 1.21.x |
 | Java | 17 |
 | Autor | devpapo |
@@ -21,9 +21,10 @@ CosmosAPI añade monedas virtuales configurables llamadas **cosmos**. Cada cosmo
 6. [Comandos para jugadores](#comandos-para-jugadores)
 7. [Menús internos](#menús-internos)
 8. [Placeholders](#placeholders)
-9. [EconomyShopGUI](#economyshopgui)
-10. [Hologramas](#hologramas)
-11. [Configuración y archivos](#configuración-y-archivos)
+9. [Tiendas Cosmos por archivos](#tiendas-cosmos-por-archivos)
+10. [EconomyShopGUI](#economyshopgui)
+11. [Hologramas](#hologramas)
+12. [Configuración y archivos](#configuración-y-archivos)
 
 ## Instalación
 
@@ -422,6 +423,57 @@ cosmo-item:
 
 Para el saldo del Cosmo que representa cada ítem, usa `{balance}`. Para referirte a un cosmo concreto, usa directamente `%cosmos_gemas%`.
 
+## Tiendas Cosmos por archivos
+
+CosmosAPI incluye tiendas independientes para usar cosmos sin requerir EconomyShopGUI. Al iniciar se crean estas carpetas:
+
+```text
+plugins/CosmosAPI/
+├── sections/
+├── shops/
+└── inventory/
+```
+
+Una sección define el comando, la moneda y la tienda que se abrirá. Por ejemplo, `sections/general.yml` abre `shops/general.yml` con `/cosmotienda`:
+
+```yml
+enable: true
+command: cosmotienda
+shop: general
+permission: ''
+disabled-worlds: []
+inventory: default
+economy: EXTERNAL:CosmosAPI:gemas
+```
+
+También puedes usar directamente `currency: gemas` en el archivo de tienda. El valor después de `CosmosAPI:` debe ser el ID interno de un cosmo existente.
+
+Los artículos se definen en `shops/general.yml` usando los campos básicos habituales de EconomyShopGUI:
+
+```yml
+enabled: true
+name: '&d&lTienda de Gemas'
+inventory: default
+
+items:
+  DIAMOND:
+    material: DIAMOND
+    amount: 1
+    name: '&b&lDiamante'
+    lore:
+      - '&7Un diamante brillante.'
+    buy: 10
+    sell: 5
+    slot: 20
+```
+
+- `buy` es el coste de compra y `sell` el pago por venta. Usa `-1` para desactivar una de las acciones.
+- `slot` es opcional; sin él, los artículos se colocan automáticamente en el área central.
+- Clic izquierdo compra y clic derecho vende la cantidad indicada en `amount`.
+- `inventory/default.yml` controla título, tamaño, decoración, saldo y botones de página. Puedes crear más diseños y seleccionarlos con `inventory: <id>`.
+
+Ejecuta `/cosmo reload` después de editar los archivos. La recarga cierra las tiendas abiertas para que ningún jugador complete una compra con precios o artículos ya reemplazados.
+
 ## EconomyShopGUI 7.2.1
 
 CosmosAPI es compatible con **EconomyShopGUI 7.2.1** y puede usar cualquier cosmo como moneda externa para **comprar y vender**. Esta integración no depende de los menús internos de CosmosAPI.
@@ -551,6 +603,9 @@ Ejecuta `/cosmo reload` después de cambiar `config.yml`, `cosmos.yml`, `conditi
 | `cosmos.yml` | Definiciones de cosmos y hologramas. |
 | `conditions.yml` | Condiciones que retiran cosmos. |
 | `menus.yml` | Vista de balances, rankings y tiendas internas. |
+| `sections/` | Secciones públicas para las tiendas Cosmos por archivos. |
+| `shops/` | Artículos, precios y páginas de las tiendas Cosmos por archivos. |
+| `inventory/` | Diseños reutilizables para las tiendas Cosmos por archivos. |
 | `players.yml` | Balances y datos de tiempo de los jugadores. |
 | `messages.yml` | Mensajes editables del plugin. |
 

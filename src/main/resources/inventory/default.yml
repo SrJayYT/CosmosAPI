@@ -1,0 +1,42 @@
+# Diseño reutilizable para todas las tiendas de plugins/CosmosAPI/shops/.
+# Los slots empiezan en 0. Los productos sobrescriben los adornos del mismo slot.
+title: '&8✦ &d&l{shop} &8• &7Página &f{page}'
+size: 54
+
+balance-item:
+  slot: 4
+  material: NETHER_STAR
+  name: '&d&l{cosmo-name}'
+  lore:
+    - '&7Tu saldo: &f{balance}'
+
+previous-page:
+  slot: 45
+  material: ARROW
+  name: '&c&l← Página anterior'
+  lore: ['&7Ir a la página &f{page}']
+
+next-page:
+  slot: 53
+  material: ARROW
+  name: '&a&lPágina siguiente →'
+  lore: ['&7Ir a la página &f{page}']
+
+items:
+  '0': {material: PURPLE_STAINED_GLASS_PANE, name: ' ', lore: []}
+  '1': {material: PURPLE_STAINED_GLASS_PANE, name: ' ', lore: []}
+  '2': {material: PURPLE_STAINED_GLASS_PANE, name: ' ', lore: []}
+  '3': {material: PURPLE_STAINED_GLASS_PANE, name: ' ', lore: []}
+  '5': {material: PURPLE_STAINED_GLASS_PANE, name: ' ', lore: []}
+  '6': {material: PURPLE_STAINED_GLASS_PANE, name: ' ', lore: []}
+  '7': {material: PURPLE_STAINED_GLASS_PANE, name: ' ', lore: []}
+  '8': {material: PURPLE_STAINED_GLASS_PANE, name: ' ', lore: []}
+  '45': {material: BLACK_STAINED_GLASS_PANE, name: ' ', lore: []}
+  '46': {material: BLACK_STAINED_GLASS_PANE, name: ' ', lore: []}
+  '47': {material: BLACK_STAINED_GLASS_PANE, name: ' ', lore: []}
+  '48': {material: BLACK_STAINED_GLASS_PANE, name: ' ', lore: []}
+  '49': {material: BLACK_STAINED_GLASS_PANE, name: ' ', lore: []}
+  '50': {material: BLACK_STAINED_GLASS_PANE, name: ' ', lore: []}
+  '51': {material: BLACK_STAINED_GLASS_PANE, name: ' ', lore: []}
+  '52': {material: BLACK_STAINED_GLASS_PANE, name: ' ', lore: []}
+  '53': {material: BLACK_STAINED_GLASS_PANE, name: ' ', lore: []}

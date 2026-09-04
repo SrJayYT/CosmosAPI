@@ -1,0 +1,17 @@
+# Sección visible de la tienda. Se carga desde plugins/CosmosAPI/sections/.
+# "shop" apunta al archivo plugins/CosmosAPI/shops/general.yml sin la extensión.
+enable: true
+slot: 20
+title: '&d&lTIENDA COSMOS'
+command: cosmotienda
+shop: general
+permission: ''
+disabled-worlds: []
+inventory: default
+economy: EXTERNAL:CosmosAPI:anormal
+
+item:
+  material: NETHER_STAR
+  name: '&d&lTienda Cosmos'
+  lore:
+    - '&7Compra objetos usando &dCosmos&7.'

@@ -515,9 +515,11 @@ pages:
 
 Resultado:
 
-- Comprar un cohete cuesta **5 Gemas**.
-- Vender un cohete entrega **2 Gemas**.
+- Comprar un cohete cuesta **5 gemas**.
+- Vender un cohete entrega **2 gemas**.
 - El artículo no utiliza el dinero de Vault.
+
+Los placeholders de idioma de EconomyShopGUI `%buyPrice%` y `%sellPrice%` muestran el importe seguido del **ID interno** del cosmo. Para el ejemplo anterior se verán como `5 gemas` y `2 gemas`. El `displayName` del cosmo no se usa para formatear estos precios.
 
 En EconomyShopGUI `7.2.1`, usa exclusivamente `buy:` y `sell:` como el resto de artículos de la tienda. No uses `buy-price` ni `sell-price` para los artículos de CosmosAPI. Tampoco escribas `buy-price::` o `sell-price::`: el doble `:` invalida el precio y EconomyShopGUI mostrará el objeto sin opciones de compra o venta.
 

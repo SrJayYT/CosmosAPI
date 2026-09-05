@@ -55,7 +55,15 @@ public final class CosmosAPI extends JavaPlugin {
         saveResource("messages.yml", false);
         saveResource("inventory/default.yml", false);
         saveResource("sections/general.yml", false);
+        saveResource("sections/agricultura.yml", false);
+        saveResource("sections/combate.yml", false);
+        saveResource("sections/mineria.yml", false);
+        saveResource("sections/utilidades.yml", false);
         saveResource("shops/general.yml", false);
+        saveResource("shops/agricultura.yml", false);
+        saveResource("shops/combate.yml", false);
+        saveResource("shops/mineria.yml", false);
+        saveResource("shops/utilidades.yml", false);
 
         messageManager = new MessageManager(this);
         storage = new CosmosStorage(this);
@@ -234,6 +242,19 @@ public final class CosmosAPI extends JavaPlugin {
                 registeredMenuCommands.put(commandName, command);
             } else {
                 getLogger().warning("No se pudo registrar /" + commandName + " para la tienda " + entry.getValue() + ".");
+            }
+        }
+        for (Map.Entry<String, Map<String, String>> entry : cosmoShopManager.getPublicShopSubcommands().entrySet()) {
+            String commandName = entry.getKey();
+            if (commandMap.getCommand(commandName) != null) {
+                getLogger().warning("No se registró /" + commandName + " para las tiendas porque ese comando ya existe.");
+                continue;
+            }
+            Command command = new PublicShopCommand(commandName, entry.getValue(), cosmoShopManager);
+            if (commandMap.register(getName().toLowerCase(), command)) {
+                registeredMenuCommands.put(commandName, command);
+            } else {
+                getLogger().warning("No se pudo registrar /" + commandName + " para las tiendas.");
             }
         }
         for (org.bukkit.entity.Player player : Bukkit.getOnlinePlayers()) {

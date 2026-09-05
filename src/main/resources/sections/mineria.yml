@@ -1,18 +1,18 @@
 enable: true
-slot: 10
-title: '&a&lMATERIALES'
-command: materiales
-shop: general
+slot: 11
+title: '&b&lMINERIA'
+command: mineria
+shop: mineria
 permission: ''
 disabled-worlds: []
 inventory: default
 economy: EXTERNAL:CosmosAPI:anormal
 
 item:
-  material: GRASS_BLOCK
-  name: '&a&lMateriales'
+  material: DIAMOND_PICKAXE
+  name: '&b&lMinería'
   lore:
     - '&8━━━━━━━━━━━━━━━━━━'
-    - '&7Bloques y recursos esenciales.'
+    - '&7Minerales y recursos subterráneos.'
     - '&eClick para abrir'
     - '&8━━━━━━━━━━━━━━━━━━'

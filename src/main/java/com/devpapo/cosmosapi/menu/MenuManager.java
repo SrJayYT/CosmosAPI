@@ -342,13 +342,17 @@ public final class MenuManager {
         List<Integer> cosmoSlots = List.of(10, 11, 12, 13, 14, 15, 16, 19, 20, 21, 22, 23, 24, 25);
         int maxPage = Math.max(0, (cosmos.size() - 1) / Math.max(1, cosmoSlots.size()));
         int actualPage = Math.max(0, Math.min(page, maxPage));
-        Inventory inventory = Bukkit.createInventory(null, size, ColorUtil.color("&8✦ &b&lTUS COSMOS &8• &7Página &f" + (actualPage + 1)));
+        String title = storage.getMenus().getString("views.title", "&8✦ &b&lTUS COSMOS &8• &7Página &f{page}");
+        Inventory inventory = Bukkit.createInventory(null, size, ColorUtil.color(replacePlaceholders(player, replace(title, Map.of("page", String.valueOf(actualPage + 1))))));
         loadViewDecoration(player, inventory);
         Map<Integer, Runnable> actions = new HashMap<>();
         for (int index = 0; index < cosmoSlots.size() && actualPage * cosmoSlots.size() + index < cosmos.size(); index++) {
             CosmoDefinition cosmo = cosmos.get(actualPage * cosmoSlots.size() + index);
             long balance = cosmosService.getBalance(player.getUniqueId(), cosmo.getId());
-            ItemStack icon = createConfiguredItem(player, null, "ECHO_SHARD", 1, "&b&l{cosmo-name}", List.of("&8━━━━━━━━━━━━━━━━━━", "&7Tu saldo actual", " ", "&f{balance} &b{cosmo-name}", " ", "&8ID: &7{cosmo-id}", "&8━━━━━━━━━━━━━━━━━━"), cosmoReplacements(cosmo, NumberFormatUtil.format(balance)));
+            ItemStack icon = cosmo.getPreviewIcon();
+            if (icon == null) {
+                icon = createConfiguredItem(player, null, "ECHO_SHARD", 1, "&b&l{cosmo-name}", List.of("&8━━━━━━━━━━━━━━━━━━", "&7Tu saldo actual", " ", "&f{balance} &b{cosmo-name}", "&8━━━━━━━━━━━━━━━━━━"), cosmoReplacements(cosmo, NumberFormatUtil.format(balance)));
+            }
             inventory.setItem(cosmoSlots.get(index), icon);
         }
         if (actualPage > 0) {
@@ -373,7 +377,8 @@ public final class MenuManager {
         List<CosmoDefinition> cosmos = cosmosService.getCosmos();
         int maxPage = Math.max(0, (cosmos.size() - 1) / Math.max(1, slots.size()));
         int actualPage = Math.max(0, Math.min(page, maxPage));
-        Inventory inventory = Bukkit.createInventory(null, size, ColorUtil.color("&8✦ &b&lTOPS DE COSMOS &8• &7Página &f" + (actualPage + 1)));
+        String title = storage.getMenus().getString("tops.title", "&8✦ &e&lTOPS DE COSMOS &8• &7Página &f{page}");
+        Inventory inventory = Bukkit.createInventory(null, size, ColorUtil.color(replacePlaceholders(player, replace(title, Map.of("page", String.valueOf(actualPage + 1))))));
         loadTopSelectionDecoration(player, inventory);
         Map<Integer, Runnable> actions = new HashMap<>();
         for (int index = 0; index < slots.size() && actualPage * slots.size() + index < cosmos.size(); index++) {
@@ -402,7 +407,8 @@ public final class MenuManager {
         int actualPage = Math.max(0, Math.min(page, maxPage));
         Map<String, String> titleReplacements = cosmoReplacements(cosmo, null);
         titleReplacements.put("page", String.valueOf(actualPage + 1));
-        Inventory inventory = Bukkit.createInventory(null, size, ColorUtil.color(replace("&8✦ &e&lTOP &8• &b{cosmo-name} &8• &7Página &f{page}", titleReplacements)));
+        String title = storage.getMenus().getString("tops.detail-title", "&8✦ &e&lTOP &8• &b{cosmo-name} &8• &7Página &f{page}");
+        Inventory inventory = Bukkit.createInventory(null, size, ColorUtil.color(replacePlaceholders(player, replace(title, titleReplacements))));
         loadTopDecoration(player, inventory);
         List<Map.Entry<UUID, Long>> topPlayers = cosmosService.getTop(cosmo.getId(), actualPage * slots.size(), slots.size());
         for (int index = 0; index < topPlayers.size(); index++) {

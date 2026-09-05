@@ -1,0 +1,54 @@
+enabled: true
+name: '&e&lAGRICULTURA'
+inventory: default
+commands:
+  - shop agricultura
+  - shop-agricultura
+
+pages:
+  pagina-1:
+    items:
+      '10': {material: WHEAT_SEEDS, amount: 32, name: '&e&l32 Semillas de trigo', lore: ['&7El comienzo de una buena cosecha.'], buy: 8, sell: 3}
+      '11': {material: WHEAT, amount: 32, name: '&6&l32 Trigos', lore: ['&7Cultivado y listo para usar.'], buy: 18, sell: 7}
+      '12': {material: CARROT, amount: 32, name: '&6&l32 Zanahorias', lore: ['&7Una cosecha nutritiva.'], buy: 16, sell: 6}
+      '13': {material: POTATO, amount: 32, name: '&e&l32 Patatas', lore: ['&7Un alimento versátil.'], buy: 16, sell: 6}
+      '14': {material: PUMPKIN, amount: 16, name: '&6&l16 Calabazas', lore: ['&7Decora o prepara recetas.'], buy: 24, sell: 10}
+      '15': {material: MELON_SLICE, amount: 32, name: '&a&l32 Rodajas de sandía', lore: ['&7Un snack fresco para el camino.'], buy: 15, sell: 6}
+      '16': {material: BONE_MEAL, amount: 32, name: '&f&l32 Polvos de hueso', lore: ['&7Acelera el crecimiento de tus cultivos.'], buy: 25, sell: 10}
+      '19': {material: BEETROOT, amount: 32, name: '&c&l32 Remolachas', lore: ['&7Una cosecha nutritiva y vistosa.'], buy: 18, sell: 7}
+      '20': {material: NETHER_WART, amount: 32, name: '&4&l32 Verrugas del Nether', lore: ['&7Base esencial para tus pociones.'], buy: 45, sell: 19}
+      '21': {material: KELP, amount: 64, name: '&2&l64 Algas', lore: ['&7Cultivo útil bajo el agua.'], buy: 14, sell: 5}
+      '22': {material: BAMBOO, amount: 64, name: '&a&l64 Bambúes', lore: ['&7Un recurso que crece rápidamente.'], buy: 22, sell: 9}
+      '23': {material: SWEET_BERRIES, amount: 32, name: '&c&l32 Bayas dulces', lore: ['&7Una merienda fresca del bosque.'], buy: 20, sell: 8}
+      '24': {material: GLOW_BERRIES, amount: 32, name: '&e&l32 Bayas brillantes', lore: ['&7Ilumina tus cuevas de forma natural.'], buy: 34, sell: 14}
+      '25': {material: APPLE, amount: 16, name: '&c&l16 Manzanas', lore: ['&7Fruta simple para el camino.'], buy: 20, sell: 8}
+      '28': {material: BREAD, amount: 32, name: '&6&l32 Panes', lore: ['&7Alimento básico para tu aventura.'], buy: 26, sell: 10}
+      '29': {material: HAY_BLOCK, amount: 16, name: '&e&l16 Pacas de heno', lore: ['&7Alimenta y decora tu granja.'], buy: 32, sell: 13}
+      '30': {material: PUMPKIN_SEEDS, amount: 32, name: '&6&l32 Semillas de calabaza', lore: ['&7Amplía tu plantación.'], buy: 10, sell: 4}
+      '31': {material: MELON_SEEDS, amount: 32, name: '&a&l32 Semillas de sandía', lore: ['&7Cultiva una cosecha refrescante.'], buy: 10, sell: 4}
+      '32': {material: CHORUS_FRUIT, amount: 16, name: '&d&l16 Frutas chorus', lore: ['&7Cultivo exótico del End.'], buy: 55, sell: 23}
+      '33': {material: COCOA_BEANS, amount: 64, name: '&6&l64 Granos de cacao', lore: ['&7Para cultivos y tintes.'], buy: 42, sell: 17}
+      '34': {material: BROWN_MUSHROOM, amount: 32, name: '&6&l32 Setas marrones', lore: ['&7Ingredientes para tus recetas.'], buy: 24, sell: 9}
+  pagina-2:
+    items:
+      '10': {material: BEETROOT_SEEDS, amount: 32, name: '&c&l32 Semillas de remolacha', lore: ['&7Una cosecha diferente para tu granja.'], buy: 10, sell: 4}
+      '11': {material: SUGAR_CANE, amount: 32, name: '&a&l32 Cañas de azúcar', lore: ['&7Para papel, libros y comercio.'], buy: 18, sell: 7}
+      '12': {material: CACTUS, amount: 16, name: '&a&l16 Cactus', lore: ['&7Un cultivo resistente del desierto.'], buy: 22, sell: 9}
+      '13': {material: COCOA_BEANS, amount: 24, name: '&6&l24 Granos de cacao', lore: ['&7Cultiva y crea tintes.'], buy: 20, sell: 8}
+      '14': {material: HONEY_BOTTLE, amount: 8, name: '&6&l8 Botellas de miel', lore: ['&7Dulce producción de tus abejas.'], buy: 42, sell: 17}
+      '15': {material: EGG, amount: 32, name: '&f&l32 Huevos', lore: ['&7Amplía tu corral.'], buy: 16, sell: 6}
+      '16': {material: LEATHER, amount: 16, name: '&6&l16 Cueros', lore: ['&7Recurso para libros y armaduras.'], buy: 35, sell: 14}
+      '19': {material: RED_MUSHROOM, amount: 32, name: '&c&l32 Setas rojas', lore: ['&7Ideales para guisos y decoración.'], buy: 24, sell: 9}
+      '20': {material: BEE_NEST, amount: 1, name: '&6&lNido de abejas', lore: ['&7Comienza tu propia producción de miel.'], buy: 110, sell: 45}
+      '21': {material: HONEYCOMB, amount: 16, name: '&e&l16 Panales', lore: ['&7Recurso artesanal de las abejas.'], buy: 48, sell: 20}
+      '22': {material: FEATHER, amount: 32, name: '&f&l32 Plumas', lore: ['&7Material para flechas y libros.'], buy: 28, sell: 11}
+      '23': {material: CHICKEN, amount: 16, name: '&f&l16 Pollos crudos', lore: ['&7Producto fresco de tu corral.'], buy: 22, sell: 8}
+      '24': {material: BEEF, amount: 16, name: '&c&l16 Carnes crudas', lore: ['&7Producto de ganadería.'], buy: 28, sell: 11}
+      '25': {material: PORKCHOP, amount: 16, name: '&d&l16 Chuletas crudas', lore: ['&7Recurso de tu granja.'], buy: 26, sell: 10}
+      '28': {material: MUTTON, amount: 16, name: '&f&l16 Corderos crudos', lore: ['&7Producto de ganadería ovina.'], buy: 26, sell: 10}
+      '29': {material: RABBIT, amount: 16, name: '&7&l16 Conejos crudos', lore: ['&7Carne para tus recetas.'], buy: 32, sell: 13}
+      '30': {material: ROTTEN_FLESH, amount: 32, name: '&8&l32 Carnes podridas', lore: ['&7Un recurso de menor calidad.'], buy: 8, sell: 2}
+      '31': {material: INK_SAC, amount: 16, name: '&8&l16 Sacos de tinta', lore: ['&7Tinte natural para tus creaciones.'], buy: 34, sell: 14}
+      '32': {material: LILY_PAD, amount: 16, name: '&a&l16 Nenúfares', lore: ['&7Decora estanques y jardines.'], buy: 26, sell: 10}
+      '33': {material: FLOWER_POT, amount: 8, name: '&6&l8 Macetas', lore: ['&7Presenta tus flores con estilo.'], buy: 22, sell: 8}
+      '34': {material: OAK_SAPLING, amount: 32, name: '&2&l32 Brotes de roble', lore: ['&7Haz crecer un bosque completo.'], buy: 20, sell: 8}

@@ -9,6 +9,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.inventory.ItemStack;
 
 public final class CosmosService {
     private final CosmosStorage storage;
@@ -42,7 +43,7 @@ public final class CosmosService {
                         continue;
                     }
                 }
-                cosmos.put(normalize(id), new CosmoDefinition(id, section.getString("display-name", id), trigger, reward, interval, section.getBoolean("enabled", true)));
+                cosmos.put(normalize(id), new CosmoDefinition(id, section.getString("display-name", id), trigger, reward, interval, section.getBoolean("enabled", true), section.getItemStack("preview-icon")));
             }
         }
     }
@@ -70,7 +71,7 @@ public final class CosmosService {
             storage.getCosmos().set(path + ".unit", unit.name());
         }
         storage.saveCosmos();
-        cosmos.put(key, new CosmoDefinition(key, "&d" + id, trigger, reward, timeIntervalMillis, true));
+        cosmos.put(key, new CosmoDefinition(key, "&d" + id, trigger, reward, timeIntervalMillis, true, null));
         return true;
     }
 
@@ -92,7 +93,7 @@ public final class CosmosService {
         }
         storage.getCosmos().set("cosmos." + definition.getId() + ".display-name", displayName);
         storage.saveCosmos();
-        cosmos.put(normalize(definition.getId()), new CosmoDefinition(definition.getId(), displayName, definition.getTrigger(), definition.getReward(), definition.getTimeIntervalMillis(), definition.isEnabled()));
+        cosmos.put(normalize(definition.getId()), new CosmoDefinition(definition.getId(), displayName, definition.getTrigger(), definition.getReward(), definition.getTimeIntervalMillis(), definition.isEnabled(), definition.getPreviewIcon()));
         return true;
     }
 
@@ -112,7 +113,7 @@ public final class CosmosService {
             storage.getCosmos().set(path + ".unit", null);
         }
         storage.saveCosmos();
-        cosmos.put(normalize(definition.getId()), new CosmoDefinition(definition.getId(), definition.getDisplayName(), trigger, definition.getReward(), intervalMillis, definition.isEnabled()));
+        cosmos.put(normalize(definition.getId()), new CosmoDefinition(definition.getId(), definition.getDisplayName(), trigger, definition.getReward(), intervalMillis, definition.isEnabled(), definition.getPreviewIcon()));
         return true;
     }
 
@@ -123,7 +124,7 @@ public final class CosmosService {
         }
         storage.getCosmos().set("cosmos." + definition.getId() + ".reward", reward);
         storage.saveCosmos();
-        cosmos.put(normalize(definition.getId()), new CosmoDefinition(definition.getId(), definition.getDisplayName(), definition.getTrigger(), reward, definition.getTimeIntervalMillis(), definition.isEnabled()));
+        cosmos.put(normalize(definition.getId()), new CosmoDefinition(definition.getId(), definition.getDisplayName(), definition.getTrigger(), reward, definition.getTimeIntervalMillis(), definition.isEnabled(), definition.getPreviewIcon()));
         return true;
     }
 
@@ -142,7 +143,7 @@ public final class CosmosService {
         storage.getCosmos().set(path + ".interval", interval);
         storage.getCosmos().set(path + ".unit", unit.name());
         storage.saveCosmos();
-        cosmos.put(normalize(definition.getId()), new CosmoDefinition(definition.getId(), definition.getDisplayName(), definition.getTrigger(), definition.getReward(), intervalMillis, definition.isEnabled()));
+        cosmos.put(normalize(definition.getId()), new CosmoDefinition(definition.getId(), definition.getDisplayName(), definition.getTrigger(), definition.getReward(), intervalMillis, definition.isEnabled(), definition.getPreviewIcon()));
         return true;
     }
 
@@ -153,7 +154,20 @@ public final class CosmosService {
         }
         storage.getCosmos().set("cosmos." + definition.getId() + ".enabled", enabled);
         storage.saveCosmos();
-        cosmos.put(normalize(definition.getId()), new CosmoDefinition(definition.getId(), definition.getDisplayName(), definition.getTrigger(), definition.getReward(), definition.getTimeIntervalMillis(), enabled));
+        cosmos.put(normalize(definition.getId()), new CosmoDefinition(definition.getId(), definition.getDisplayName(), definition.getTrigger(), definition.getReward(), definition.getTimeIntervalMillis(), enabled, definition.getPreviewIcon()));
+        return true;
+    }
+
+    public boolean setPreviewIcon(String id, ItemStack previewIcon) {
+        CosmoDefinition definition = getCosmo(id);
+        if (definition == null || previewIcon == null || previewIcon.getType().isAir()) {
+            return false;
+        }
+        ItemStack savedIcon = previewIcon.clone();
+        savedIcon.setAmount(1);
+        storage.getCosmos().set("cosmos." + definition.getId() + ".preview-icon", savedIcon);
+        storage.saveCosmos();
+        cosmos.put(normalize(definition.getId()), new CosmoDefinition(definition.getId(), definition.getDisplayName(), definition.getTrigger(), definition.getReward(), definition.getTimeIntervalMillis(), definition.isEnabled(), savedIcon));
         return true;
     }
 

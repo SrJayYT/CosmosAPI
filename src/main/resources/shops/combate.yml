@@ -1,0 +1,54 @@
+enabled: true
+name: '&c&lCOMBATE'
+inventory: default
+commands:
+  - shop combate
+  - shop-combate
+
+pages:
+  pagina-1:
+    items:
+      '10': {material: IRON_SWORD, amount: 1, name: '&f&lEspada de hierro', lore: ['&7Un arma fiable para la batalla.'], buy: 60, sell: 25}
+      '11': {material: IRON_CHESTPLATE, amount: 1, name: '&f&lPeto de hierro', lore: ['&7Protección para tus enfrentamientos.'], buy: 90, sell: 38}
+      '12': {material: SHIELD, amount: 1, name: '&7&lEscudo', lore: ['&7Bloquea los ataques enemigos.'], buy: 45, sell: 18}
+      '13': {material: BOW, amount: 1, name: '&6&lArco', lore: ['&7Ataca desde la distancia.'], buy: 55, sell: 22}
+      '14': {material: ARROW, amount: 32, name: '&f&l32 Flechas', lore: ['&7Munición para tu arco.'], buy: 20, sell: 8}
+      '15': {material: GOLDEN_APPLE, amount: 2, name: '&6&l2 Manzanas doradas', lore: ['&7Una ventaja decisiva en combate.'], buy: 50, sell: 20}
+      '16': {material: COOKED_BEEF, amount: 16, name: '&c&l16 Filetes', lore: ['&7Recupera tu hambre antes de luchar.'], buy: 18, sell: 7}
+      '19': {material: STONE_SWORD, amount: 1, name: '&7&lEspada de piedra', lore: ['&7Una opción económica para comenzar.'], buy: 24, sell: 9}
+      '20': {material: DIAMOND_SWORD, amount: 1, name: '&b&lEspada de diamante', lore: ['&7Poder para los mejores guerreros.'], buy: 260, sell: 110}
+      '21': {material: IRON_AXE, amount: 1, name: '&f&lHacha de hierro', lore: ['&7Herramienta contundente para luchar.'], buy: 55, sell: 22}
+      '22': {material: TRIDENT, amount: 1, name: '&b&lTridente', lore: ['&7Domina el combate acuático.'], buy: 320, sell: 135}
+      '23': {material: FISHING_ROD, amount: 1, name: '&e&lCaña de pescar', lore: ['&7Útil para atraer y pescar.'], buy: 28, sell: 11}
+      '24': {material: SNOWBALL, amount: 32, name: '&f&l32 Bolas de nieve', lore: ['&7Una distracción para tus rivales.'], buy: 12, sell: 4}
+      '25': {material: EGG, amount: 32, name: '&f&l32 Huevos', lore: ['&7Lanza proyectiles ligeros.'], buy: 16, sell: 6}
+      '28': {material: CHAINMAIL_CHESTPLATE, amount: 1, name: '&7&lPeto de cota de malla', lore: ['&7Protección flexible para la batalla.'], buy: 72, sell: 29}
+      '29': {material: DIAMOND_HELMET, amount: 1, name: '&b&lCasco de diamante', lore: ['&7Protección premium para tu cabeza.'], buy: 145, sell: 60}
+      '30': {material: DIAMOND_CHESTPLATE, amount: 1, name: '&b&lPeto de diamante', lore: ['&7Armadura para los más valientes.'], buy: 240, sell: 102}
+      '31': {material: DIAMOND_LEGGINGS, amount: 1, name: '&b&lGrebas de diamante', lore: ['&7Resistencia para combates largos.'], buy: 200, sell: 84}
+      '32': {material: DIAMOND_BOOTS, amount: 1, name: '&b&lBotas de diamante', lore: ['&7Avanza con seguridad.'], buy: 130, sell: 54}
+      '33': {material: LEATHER, amount: 32, name: '&6&l32 Cueros', lore: ['&7Crea tu propio equipamiento.'], buy: 60, sell: 24}
+      '34': {material: TNT, amount: 8, name: '&c&l8 TNT', lore: ['&7Un recurso explosivo.'], buy: 95, sell: 38}
+  pagina-2:
+    items:
+      '10': {material: IRON_HELMET, amount: 1, name: '&f&lCasco de hierro', lore: ['&7Protección para la primera línea.'], buy: 55, sell: 22}
+      '11': {material: IRON_LEGGINGS, amount: 1, name: '&f&lGrebas de hierro', lore: ['&7Armadura resistente.'], buy: 75, sell: 31}
+      '12': {material: IRON_BOOTS, amount: 1, name: '&f&lBotas de hierro', lore: ['&7Avanza protegido.'], buy: 48, sell: 19}
+      '13': {material: CROSSBOW, amount: 1, name: '&8&lBallesta', lore: ['&7Dispara con potencia y precisión.'], buy: 80, sell: 34}
+      '14': {material: TIPPED_ARROW, amount: 16, name: '&a&l16 Flechas de curación', lore: ['&7Apoyo para tu equipo.'], buy: 70, sell: 28}
+      '15': {material: GOLDEN_CARROT, amount: 16, name: '&6&l16 Zanahorias doradas', lore: ['&7Alimento de máxima calidad.'], buy: 48, sell: 19}
+      '16': {material: TOTEM_OF_UNDYING, amount: 1, name: '&e&lTótem de inmortalidad', lore: ['&7Una segunda oportunidad.'], buy: 300, sell: 125}
+      '19': {material: DIAMOND_AXE, amount: 1, name: '&b&lHacha de diamante', lore: ['&7Golpes devastadores en combate.'], buy: 220, sell: 92}
+      '20': {material: BOW, amount: 1, name: '&6&lArco de reserva', lore: ['&7Nunca te quedes sin arma a distancia.'], buy: 55, sell: 22}
+      '21': {material: CROSSBOW, amount: 1, name: '&8&lBallesta reforzada', lore: ['&7Un disparo preciso y potente.'], buy: 95, sell: 40}
+      '22': {material: SPECTRAL_ARROW, amount: 16, name: '&e&l16 Flechas espectrales', lore: ['&7Marca a tus objetivos.'], buy: 72, sell: 29}
+      '23': {material: FIRE_CHARGE, amount: 8, name: '&6&l8 Cargas ígneas', lore: ['&7Enciende el combate a distancia.'], buy: 48, sell: 19}
+      '24': {material: ENDER_PEARL, amount: 16, name: '&5&l16 Perlas de ender', lore: ['&7Reposición para movimientos rápidos.'], buy: 130, sell: 55}
+      '25': {material: SHIELD, amount: 1, name: '&7&lEscudo reforzado', lore: ['&7Tu mejor defensa frente a proyectiles.'], buy: 50, sell: 20}
+      '28': {material: GOLDEN_APPLE, amount: 8, name: '&6&l8 Manzanas doradas', lore: ['&7Reserva de curación para la batalla.'], buy: 185, sell: 75}
+      '29': {material: ENCHANTED_GOLDEN_APPLE, amount: 1, name: '&6&lManzana dorada encantada', lore: ['&7Un recurso excepcionalmente valioso.'], buy: 850, sell: 350}
+      '30': {material: COOKED_CHICKEN, amount: 32, name: '&6&l32 Pollos asados', lore: ['&7Comida preparada para tu expedición.'], buy: 28, sell: 11}
+      '31': {material: COOKED_PORKCHOP, amount: 32, name: '&c&l32 Chuletas cocidas', lore: ['&7Alimento para el frente.'], buy: 30, sell: 12}
+      '32': {material: POTION, amount: 1, name: '&d&lPoción misteriosa', lore: ['&7Una base para tus preparativos.'], buy: 45, sell: 18}
+      '33': {material: MILK_BUCKET, amount: 1, name: '&f&lCubo de leche', lore: ['&7Elimina efectos negativos.'], buy: 24, sell: 9}
+      '34': {material: SPIDER_EYE, amount: 16, name: '&8&l16 Ojos de araña', lore: ['&7Ingrediente para pociones.'], buy: 32, sell: 13}

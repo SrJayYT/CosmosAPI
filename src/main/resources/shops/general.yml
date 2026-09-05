@@ -1,31 +1,54 @@
-# Artículos de la sección general. Formato compatible con los campos básicos de EconomyShopGUI.
-# Click izquierdo compra; click derecho vende. buy o sell: -1 desactiva esa acción.
 enabled: true
-name: '&d&lTIENDA COSMOS'
+name: '&a&lMATERIALES'
 inventory: default
+commands:
+  - shop materiales
+  - shop-materiales
 
-items:
-  DIAMOND:
-    material: DIAMOND
-    amount: 1
-    name: '&b&lDiamante'
-    lore:
-      - '&7Un diamante brillante.'
-    buy: 10
-    sell: 5
-  GOLDEN_APPLE:
-    material: GOLDEN_APPLE
-    amount: 8
-    name: '&6&l8 Manzanas doradas'
-    lore:
-      - '&7Perfectas para combate.'
-    buy: 25
-    sell: 12
-  NETHERITE_INGOT:
-    material: NETHERITE_INGOT
-    amount: 1
-    name: '&8&lLingote de netherita'
-    lore:
-      - '&7Un recurso muy valioso.'
-    buy: 100
-    sell: 50
+pages:
+  pagina-1:
+    items:
+      '10': {material: COBBLESTONE, amount: 64, name: '&7&l64 Piedra', lore: ['&7Un bloque básico para construir.'], buy: 8, sell: 3}
+      '11': {material: OAK_LOG, amount: 32, name: '&6&l32 Troncos de roble', lore: ['&7Madera para tus construcciones.'], buy: 12, sell: 5}
+      '12': {material: GLASS, amount: 32, name: '&f&l32 Cristales', lore: ['&7Perfectos para ventanas.'], buy: 16, sell: 6}
+      '13': {material: BRICKS, amount: 32, name: '&c&l32 Ladrillos', lore: ['&7Construye con estilo.'], buy: 24, sell: 10}
+      '14': {material: OBSIDIAN, amount: 8, name: '&5&l8 Obsidiana', lore: ['&7Un bloque resistente y valioso.'], buy: 40, sell: 18}
+      '15': {material: GLOWSTONE, amount: 16, name: '&e&l16 Piedra luminosa', lore: ['&7Ilumina tus mejores construcciones.'], buy: 30, sell: 12}
+      '16': {material: SAND, amount: 64, name: '&e&l64 Arena', lore: ['&7Un recurso útil para cristal y TNT.'], buy: 10, sell: 4}
+      '19': {material: DIRT, amount: 64, name: '&6&l64 Tierra', lore: ['&7La base de cualquier terreno.'], buy: 8, sell: 3}
+      '20': {material: GRAVEL, amount: 64, name: '&7&l64 Grava', lore: ['&7Útil para caminos y construcción.'], buy: 12, sell: 5}
+      '21': {material: CLAY_BALL, amount: 32, name: '&9&l32 Bolas de arcilla', lore: ['&7Moldea tus ideas en bloques.'], buy: 22, sell: 9}
+      '22': {material: NETHERRACK, amount: 64, name: '&c&l64 Netherrack', lore: ['&7Material procedente del Nether.'], buy: 14, sell: 5}
+      '23': {material: SOUL_SAND, amount: 32, name: '&8&l32 Arena de almas', lore: ['&7Un bloque especial del Nether.'], buy: 28, sell: 11}
+      '24': {material: END_STONE, amount: 32, name: '&e&l32 Piedra del End', lore: ['&7Material de otra dimensión.'], buy: 38, sell: 16}
+      '25': {material: ICE, amount: 16, name: '&b&l16 Hielos', lore: ['&7Para construcciones frías y rápidas.'], buy: 24, sell: 10}
+      '28': {material: OAK_LEAVES, amount: 32, name: '&a&l32 Hojas de roble', lore: ['&7Añade naturaleza a tus diseños.'], buy: 16, sell: 6}
+      '29': {material: VINE, amount: 16, name: '&2&l16 Enredaderas', lore: ['&7Decora ruinas y jardines.'], buy: 20, sell: 8}
+      '30': {material: LADDER, amount: 16, name: '&6&l16 Escaleras de mano', lore: ['&7Conecta todos tus niveles.'], buy: 18, sell: 7}
+      '31': {material: SCAFFOLDING, amount: 16, name: '&e&l16 Andamios', lore: ['&7Construye a gran altura.'], buy: 30, sell: 12}
+      '32': {material: WHITE_CONCRETE, amount: 32, name: '&f&l32 Hormigones blancos', lore: ['&7Un acabado moderno y limpio.'], buy: 34, sell: 14}
+      '33': {material: BLACK_CONCRETE, amount: 32, name: '&8&l32 Hormigones negros', lore: ['&7Un acabado elegante y oscuro.'], buy: 34, sell: 14}
+      '34': {material: GLOWSTONE, amount: 32, name: '&e&l32 Piedras luminosas', lore: ['&7Ilumina sin antorchas.'], buy: 54, sell: 22}
+  pagina-2:
+    items:
+      '10': {material: STONE_BRICKS, amount: 64, name: '&7&l64 Ladrillos de piedra', lore: ['&7Una base elegante y resistente.'], buy: 22, sell: 9}
+      '11': {material: OAK_PLANKS, amount: 64, name: '&6&l64 Tablones de roble', lore: ['&7Madera lista para construir.'], buy: 20, sell: 8}
+      '12': {material: WHITE_WOOL, amount: 32, name: '&f&l32 Lanas blancas', lore: ['&7Decora tus construcciones.'], buy: 18, sell: 7}
+      '13': {material: QUARTZ_BLOCK, amount: 16, name: '&f&l16 Bloques de cuarzo', lore: ['&7Construcción moderna y limpia.'], buy: 42, sell: 18}
+      '14': {material: SEA_LANTERN, amount: 8, name: '&b&l8 Linternas marinas', lore: ['&7Iluminación sofisticada.'], buy: 55, sell: 24}
+      '15': {material: TERRACOTTA, amount: 32, name: '&6&l32 Terracotas', lore: ['&7Añade color a tus proyectos.'], buy: 26, sell: 10}
+      '16': {material: BOOKSHELF, amount: 8, name: '&6&l8 Librerías', lore: ['&7Ideal para tu sala de encantamientos.'], buy: 48, sell: 20}
+      '19': {material: SPRUCE_LOG, amount: 32, name: '&6&l32 Troncos de abeto', lore: ['&7Madera oscura para tus proyectos.'], buy: 14, sell: 6}
+      '20': {material: BIRCH_LOG, amount: 32, name: '&e&l32 Troncos de abedul', lore: ['&7Madera clara y elegante.'], buy: 14, sell: 6}
+      '21': {material: DARK_OAK_LOG, amount: 32, name: '&8&l32 Troncos de roble oscuro', lore: ['&7Madera robusta para grandes bases.'], buy: 16, sell: 6}
+      '22': {material: ACACIA_LOG, amount: 32, name: '&c&l32 Troncos de acacia', lore: ['&7Un toque cálido y diferente.'], buy: 16, sell: 6}
+      '23': {material: JUNGLE_LOG, amount: 32, name: '&6&l32 Troncos de jungla', lore: ['&7Perfectos para construcciones tropicales.'], buy: 16, sell: 6}
+      '24': {material: PRISMARINE, amount: 32, name: '&b&l32 Prismarinas', lore: ['&7Construye un templo submarino.'], buy: 46, sell: 19}
+      '25': {material: MAGMA_BLOCK, amount: 16, name: '&c&l16 Bloques de magma', lore: ['&7Un detalle peligroso y decorativo.'], buy: 36, sell: 15}
+      '28': {material: RED_SANDSTONE, amount: 32, name: '&6&l32 Areniscas rojas', lore: ['&7Ideal para construcciones del desierto.'], buy: 30, sell: 12}
+      '29': {material: POLISHED_ANDESITE, amount: 32, name: '&7&l32 Andesitas pulidas', lore: ['&7Piedra de acabado refinado.'], buy: 28, sell: 11}
+      '30': {material: POLISHED_GRANITE, amount: 32, name: '&c&l32 Granitos pulidos', lore: ['&7Un bloque cálido y resistente.'], buy: 28, sell: 11}
+      '31': {material: POLISHED_DIORITE, amount: 32, name: '&f&l32 Dioritas pulidas', lore: ['&7Un toque claro para tu base.'], buy: 28, sell: 11}
+      '32': {material: MOSS_BLOCK, amount: 16, name: '&a&l16 Bloques de musgo', lore: ['&7Da vida a tus construcciones.'], buy: 32, sell: 13}
+      '33': {material: DEEPSLATE_BRICKS, amount: 32, name: '&8&l32 Ladrillos de pizarra', lore: ['&7Un estilo profundo y moderno.'], buy: 38, sell: 16}
+      '34': {material: CHISELED_QUARTZ_BLOCK, amount: 16, name: '&f&l16 Cuarzos cincelados', lore: ['&7Detalle premium para tus edificios.'], buy: 52, sell: 22}

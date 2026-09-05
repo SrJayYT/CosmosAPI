@@ -1,18 +1,18 @@
 enable: true
-slot: 10
-title: '&a&lMATERIALES'
-command: materiales
-shop: general
+slot: 12
+title: '&c&lCOMBATE'
+command: combate
+shop: combate
 permission: ''
 disabled-worlds: []
 inventory: default
 economy: EXTERNAL:CosmosAPI:anormal
 
 item:
-  material: GRASS_BLOCK
-  name: '&a&lMateriales'
+  material: DIAMOND_SWORD
+  name: '&c&lCombate'
   lore:
     - '&8━━━━━━━━━━━━━━━━━━'
-    - '&7Bloques y recursos esenciales.'
+    - '&7Equipo y consumibles para luchar.'
     - '&eClick para abrir'
     - '&8━━━━━━━━━━━━━━━━━━'

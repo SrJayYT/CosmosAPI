@@ -1,0 +1,54 @@
+enabled: true
+name: '&b&lMINERÍA'
+inventory: default
+commands:
+  - shop mineria
+  - shop-mineria
+
+pages:
+  pagina-1:
+    items:
+      '10': {material: COAL, amount: 32, name: '&8&l32 Carbón', lore: ['&7Combustible para tus hornos.'], buy: 12, sell: 5}
+      '11': {material: IRON_INGOT, amount: 16, name: '&f&l16 Lingotes de hierro', lore: ['&7Un metal esencial para progresar.'], buy: 35, sell: 15}
+      '12': {material: GOLD_INGOT, amount: 16, name: '&6&l16 Lingotes de oro', lore: ['&7Un metal brillante y valioso.'], buy: 55, sell: 24}
+      '13': {material: REDSTONE, amount: 32, name: '&c&l32 Redstone', lore: ['&7Da energía a tus mecanismos.'], buy: 30, sell: 12}
+      '14': {material: LAPIS_LAZULI, amount: 24, name: '&9&l24 Lapislázuli', lore: ['&7Necesario para encantar.'], buy: 38, sell: 16}
+      '15': {material: DIAMOND, amount: 3, name: '&b&l3 Diamantes', lore: ['&7Una gema rara y muy cotizada.'], buy: 90, sell: 40}
+      '16': {material: EMERALD, amount: 8, name: '&a&l8 Esmeraldas', lore: ['&7Una moneda de los aldeanos.'], buy: 72, sell: 30}
+      '19': {material: RAW_COPPER, amount: 32, name: '&6&l32 Cobres en bruto', lore: ['&7Extraídos directamente de la veta.'], buy: 22, sell: 9}
+      '20': {material: RAW_GOLD, amount: 16, name: '&6&l16 Oros en bruto', lore: ['&7Listos para fundir en tu horno.'], buy: 42, sell: 18}
+      '21': {material: RAW_IRON, amount: 32, name: '&7&l32 Hierros en bruto', lore: ['&7Mineral sin procesar.'], buy: 44, sell: 18}
+      '22': {material: DIAMOND, amount: 8, name: '&b&l8 Diamantes', lore: ['&7Un lote para grandes proyectos.'], buy: 230, sell: 102}
+      '23': {material: EMERALD, amount: 16, name: '&a&l16 Esmeraldas', lore: ['&7Gemas para comerciar.'], buy: 138, sell: 58}
+      '24': {material: REDSTONE, amount: 64, name: '&c&l64 Redstone', lore: ['&7Potencia todos tus circuitos.'], buy: 54, sell: 22}
+      '25': {material: LAPIS_LAZULI, amount: 64, name: '&9&l64 Lapislázulis', lore: ['&7Abastece tu mesa de encantamientos.'], buy: 92, sell: 38}
+      '28': {material: COAL_BLOCK, amount: 8, name: '&8&l8 Bloques de carbón', lore: ['&7Combustible compacto y duradero.'], buy: 42, sell: 17}
+      '29': {material: IRON_BLOCK, amount: 4, name: '&f&l4 Bloques de hierro', lore: ['&7Metal comprimido de gran valor.'], buy: 120, sell: 50}
+      '30': {material: GOLD_BLOCK, amount: 4, name: '&6&l4 Bloques de oro', lore: ['&7Reserva brillante de mineral.'], buy: 190, sell: 80}
+      '31': {material: DIAMOND_BLOCK, amount: 1, name: '&b&lBloque de diamante', lore: ['&7Un tesoro concentrado.'], buy: 260, sell: 115}
+      '32': {material: EMERALD_BLOCK, amount: 1, name: '&a&lBloque de esmeralda', lore: ['&7Una inversión de alto nivel.'], buy: 155, sell: 65}
+      '33': {material: GLOWSTONE_DUST, amount: 32, name: '&e&l32 Polvos luminosos', lore: ['&7Ingrediente del Nether.'], buy: 26, sell: 10}
+      '34': {material: BLAZE_ROD, amount: 16, name: '&6&l16 Varas de blaze', lore: ['&7Material esencial para pociones.'], buy: 85, sell: 35}
+  pagina-2:
+    items:
+      '10': {material: COPPER_INGOT, amount: 24, name: '&6&l24 Lingotes de cobre', lore: ['&7Metal versátil para construcción.'], buy: 32, sell: 13}
+      '11': {material: RAW_IRON, amount: 16, name: '&7&l16 Hierros en bruto', lore: ['&7Recién extraídos de la mina.'], buy: 24, sell: 10}
+      '12': {material: AMETHYST_SHARD, amount: 16, name: '&d&l16 Fragmentos de amatista', lore: ['&7Un cristal brillante y especial.'], buy: 65, sell: 28}
+      '13': {material: QUARTZ, amount: 32, name: '&f&l32 Cuarzos del Nether', lore: ['&7Recurso esencial para mecanismos.'], buy: 45, sell: 19}
+      '14': {material: NETHERITE_SCRAP, amount: 1, name: '&8&lRestos de netherita', lore: ['&7Material extremadamente raro.'], buy: 250, sell: 110}
+      '15': {material: OBSIDIAN, amount: 16, name: '&5&l16 Obsidianas', lore: ['&7Protección contra el fuego.'], buy: 70, sell: 30}
+      '16': {material: FLINT, amount: 32, name: '&8&l32 Pedernales', lore: ['&7Útiles para flechas y fuego.'], buy: 14, sell: 5}
+      '19': {material: ANCIENT_DEBRIS, amount: 1, name: '&4&lEscombros ancestrales', lore: ['&7La reliquia más rara del Nether.'], buy: 420, sell: 180}
+      '20': {material: NETHERITE_INGOT, amount: 1, name: '&8&lLingote de netherita', lore: ['&7El metal definitivo para tu equipo.'], buy: 650, sell: 280}
+      '21': {material: QUARTZ_BLOCK, amount: 16, name: '&f&l16 Bloques de cuarzo', lore: ['&7Cuarzo refinado para construir.'], buy: 48, sell: 20}
+      '22': {material: MAGMA_CREAM, amount: 16, name: '&c&l16 Cremas de magma', lore: ['&7Ingrediente para pociones especiales.'], buy: 50, sell: 20}
+      '23': {material: GLOWSTONE, amount: 16, name: '&e&l16 Piedras luminosas', lore: ['&7Iluminación del Nether.'], buy: 42, sell: 17}
+      '24': {material: BLACKSTONE, amount: 64, name: '&8&l64 Piedras negras', lore: ['&7Bloques resistentes del Nether.'], buy: 32, sell: 13}
+      '25': {material: BASALT, amount: 64, name: '&7&l64 Basaltos', lore: ['&7Piedra volcánica decorativa.'], buy: 30, sell: 12}
+      '28': {material: CRYING_OBSIDIAN, amount: 8, name: '&5&l8 Obsidianas llorosas', lore: ['&7Un bloque raro y misterioso.'], buy: 110, sell: 46}
+      '29': {material: AMETHYST_BLOCK, amount: 8, name: '&d&l8 Bloques de amatista', lore: ['&7Cristales para tus construcciones.'], buy: 95, sell: 40}
+      '30': {material: POINTED_DRIPSTONE, amount: 16, name: '&6&l16 Espeleotemas', lore: ['&7Formaciones naturales de cuevas.'], buy: 34, sell: 14}
+      '31': {material: TUFF, amount: 64, name: '&7&l64 Tobas', lore: ['&7Piedra profunda para construir.'], buy: 22, sell: 8}
+      '32': {material: CALCITE, amount: 32, name: '&f&l32 Calcitas', lore: ['&7Bloques claros de geodas.'], buy: 36, sell: 15}
+      '33': {material: COBBLED_DEEPSLATE, amount: 64, name: '&8&l64 Pizarras profundas', lore: ['&7Recurso de las capas profundas.'], buy: 26, sell: 10}
+      '34': {material: SCULK, amount: 16, name: '&9&l16 Sculks', lore: ['&7Un bloque extraño de la oscuridad.'], buy: 75, sell: 31}

@@ -7,13 +7,17 @@ import com.devpapo.cosmosapi.cosmo.CosmosService;
 import com.devpapo.cosmosapi.util.ColorUtil;
 import com.devpapo.cosmosapi.util.NumberFormatUtil;
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
+import java.util.logging.Level;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.configuration.ConfigurationSection;
@@ -32,33 +36,50 @@ public final class CosmoShopManager {
     private final File shopsDirectory;
     private final File sectionsDirectory;
     private final File inventoriesDirectory;
+    private final File menusFile;
     private final Map<String, FileConfiguration> shops = new HashMap<>();
     private final Map<String, FileConfiguration> sections = new HashMap<>();
     private final Map<String, FileConfiguration> inventories = new HashMap<>();
     private final Map<Inventory, OpenShop> openShops = new HashMap<>();
+    private final Map<Inventory, QuantitySelection> quantityMenus = new HashMap<>();
+    private FileConfiguration menusConfiguration;
 
     public CosmoShopManager(CosmosAPI plugin, CosmosService cosmosService) {
         this.plugin = plugin;
         this.cosmosService = cosmosService;
-        this.shopsDirectory = new File(plugin.getDataFolder(), "shops");
-        this.sectionsDirectory = new File(plugin.getDataFolder(), "sections");
-        this.inventoriesDirectory = new File(plugin.getDataFolder(), "inventory");
+        File configDirectory = new File(plugin.getDataFolder(), "config");
+        this.shopsDirectory = resolveDirectory(configDirectory, "shops");
+        this.sectionsDirectory = resolveDirectory(configDirectory, "sections");
+        this.inventoriesDirectory = resolveDirectory(configDirectory, "inventory");
+        this.menusFile = resolveFile(configDirectory, "menus.yml");
         reload();
     }
 
     public void reload() {
+        Map<Player, String> reopen = new HashMap<>();
         for (Player player : Bukkit.getOnlinePlayers()) {
-            if (openShops.containsKey(player.getOpenInventory().getTopInventory())) {
+            OpenShop openShop = openShops.get(player.getOpenInventory().getTopInventory());
+            if (openShop != null) {
+                reopen.put(player, openShop.id);
                 player.closeInventory();
             }
         }
         openShops.clear();
+        quantityMenus.clear();
         shopsDirectory.mkdirs();
         sectionsDirectory.mkdirs();
         inventoriesDirectory.mkdirs();
         loadDirectory(shopsDirectory, shops);
         loadDirectory(sectionsDirectory, sections);
         loadDirectory(inventoriesDirectory, inventories);
+        menusConfiguration = YamlConfiguration.loadConfiguration(menusFile);
+        if (!reopen.isEmpty()) {
+            Bukkit.getScheduler().runTask(plugin, () -> reopen.forEach((player, id) -> {
+                if (player.isOnline()) {
+                    openShop(player, id);
+                }
+            }));
+        }
     }
 
     public List<String> getShopIds() {
@@ -70,6 +91,231 @@ public final class CosmoShopManager {
         }
         ids.sort(String.CASE_INSENSITIVE_ORDER);
         return ids;
+    }
+
+    public List<String> getInventoryIds() {
+        List<String> ids = new ArrayList<>(inventories.keySet());
+        ids.sort(String.CASE_INSENSITIVE_ORDER);
+        return ids;
+    }
+
+    public List<String> getShopStatus() {
+        List<String> status = new ArrayList<>();
+        for (String id : getShopIds()) {
+            FileConfiguration section = sections.get(id);
+            FileConfiguration shop = getShopForSection(id, section);
+            if (shop == null) {
+                continue;
+            }
+            List<String> issues = new ArrayList<>();
+            if (!isEnabled(shop) || (section != null && !isEnabled(section))) {
+                issues.add(plugin.getMessageManager().format("menu-status.disabled", Map.of()));
+            }
+            String inventoryId = section == null ? shop.getString("inventory", "default") : section.getString("inventory", shop.getString("inventory", "default"));
+            if (!inventories.containsKey(inventoryId.toLowerCase(Locale.ROOT))) {
+                issues.add("inventario inválido");
+            }
+            if (cosmosService.getCosmo(getCurrency(shop, section)) == null) {
+                issues.add("cosmo inválido");
+            }
+            status.add(plugin.getMessageManager().format(issues.isEmpty() ? "menu-status.active" : "menu-status.with-issues", Map.of(
+                "menu", id,
+                "issues", String.join("&7, &e", issues)
+            )));
+        }
+        return status;
+    }
+
+    public void openShopDirectory(Player player) {
+        ConfigurationSection menu = menusConfiguration.getConfigurationSection("shops");
+        if (menu == null) {
+            send(player, "no-cosmo-shops", Map.of());
+            return;
+        }
+        int size = getSize(menu.getInt("size", 45));
+        String title = replace(player, menu.getString("title", "&8Tiendas Cosmos"), Map.of());
+        Inventory inventory = Bukkit.createInventory(null, size, ColorUtil.color(title));
+        loadLayoutItems(player, inventory, menu);
+        List<Integer> slots = getMenuSlots(menu.getIntegerList("shop-slots"), size);
+        List<String> ids = getDirectoryShopIds();
+        Map<Integer, Runnable> actions = new HashMap<>();
+        Set<Integer> occupiedSlots = new HashSet<>();
+        ConfigurationSection icon = menu.getConfigurationSection("shop-item");
+        for (int index = 0; index < ids.size() && index < slots.size(); index++) {
+            String id = ids.get(index);
+            FileConfiguration section = sections.get(id);
+            FileConfiguration shop = getShopForSection(id, section);
+            if (shop == null) {
+                continue;
+            }
+            String name = getShopName(shop, section, id);
+            ItemStack item = section == null ? null : section.getItemStack("item");
+            if (item == null) {
+                item = createItem(player, section == null ? icon : section.getConfigurationSection("item"), Map.of("shop", name));
+            } else {
+                item = item.clone();
+            }
+            if (item != null) {
+                int slot = section == null ? -1 : section.getInt("slot", -1);
+                if (!slots.contains(slot) || occupiedSlots.contains(slot)) {
+                    slot = -1;
+                    for (int availableSlot : slots) {
+                        if (!occupiedSlots.contains(availableSlot)) {
+                            slot = availableSlot;
+                            break;
+                        }
+                    }
+                }
+                if (slot < 0) {
+                    continue;
+                }
+                inventory.setItem(slot, item);
+                occupiedSlots.add(slot);
+                actions.put(slot, () -> openShop(player, id));
+            }
+        }
+        if (ids.isEmpty()) {
+            ConfigurationSection empty = menu.getConfigurationSection("empty");
+            int slot = getSlot(empty, size / 2, size);
+            if (slot >= 0) {
+                inventory.setItem(slot, createItem(player, empty, Map.of()));
+            }
+        }
+        openShops.put(inventory, new OpenShop("directory", "", new HashMap<>(), actions));
+        player.openInventory(inventory);
+    }
+
+    public boolean createShop(String id, String currency) {
+        if (!isValidId(id) || shops.containsKey(id.toLowerCase(Locale.ROOT)) || cosmosService.getCosmo(currency) == null) {
+            return false;
+        }
+        FileConfiguration shop = new YamlConfiguration();
+        shop.set("enabled", true);
+        shop.set("name", "&d&l" + id.toUpperCase(Locale.ROOT));
+        shop.set("currency", currency);
+        shop.createSection("items");
+        if (!save(shop, new File(shopsDirectory, id.toLowerCase(Locale.ROOT) + ".yml"))) {
+            return false;
+        }
+        reload();
+        return true;
+    }
+
+    public boolean deleteShop(String id) {
+        File file = getConfigurationFile(shopsDirectory, id);
+        if (file == null || !file.delete()) {
+            return false;
+        }
+        reload();
+        return true;
+    }
+
+    public boolean setShopTitle(String id, String title) {
+        FileConfiguration shop = shops.get(id.toLowerCase(Locale.ROOT));
+        if (shop == null) {
+            return false;
+        }
+        shop.set("name", title);
+        return saveAndReload(shop, shopsDirectory, id);
+    }
+
+    public boolean setShopInventory(String id, String inventoryId) {
+        FileConfiguration shop = shops.get(id.toLowerCase(Locale.ROOT));
+        if (shop == null || !inventories.containsKey(inventoryId.toLowerCase(Locale.ROOT))) {
+            return false;
+        }
+        shop.set("inventory", inventoryId.toLowerCase(Locale.ROOT));
+        return saveAndReload(shop, shopsDirectory, id);
+    }
+
+    public boolean setShopItem(String id, int slot, ItemStack item, long buyPrice, long sellPrice) {
+        FileConfiguration shop = shops.get(id.toLowerCase(Locale.ROOT));
+        FileConfiguration layout = shop == null ? null : inventories.get(shop.getString("inventory", "default").toLowerCase(Locale.ROOT));
+        if (layout == null) {
+            layout = inventories.get("default");
+        }
+        if (shop == null || layout == null || item == null || item.getType().isAir() || !getProductSlots(layout, getSize(layout.getInt("size", 54))).contains(slot) || buyPrice < -1L || sellPrice < -1L || (buyPrice <= 0L && sellPrice <= 0L)) {
+            return false;
+        }
+        String path = "items." + slot;
+        shop.set(path + ".item", item.clone());
+        shop.set(path + ".buy", buyPrice);
+        shop.set(path + ".sell", sellPrice);
+        return saveAndReload(shop, shopsDirectory, id);
+    }
+
+    public boolean removeShopItem(String id, int slot) {
+        FileConfiguration shop = shops.get(id.toLowerCase(Locale.ROOT));
+        if (shop == null || !shop.contains("items." + slot)) {
+            return false;
+        }
+        shop.set("items." + slot, null);
+        return saveAndReload(shop, shopsDirectory, id);
+    }
+
+    public boolean createInventory(String id) {
+        if (!isValidId(id) || inventories.containsKey(id.toLowerCase(Locale.ROOT))) {
+            return false;
+        }
+        FileConfiguration inventory = new YamlConfiguration();
+        inventory.set("title", "&8" + id);
+        inventory.set("size", 54);
+        inventory.set("product-slots", defaultProductSlots(54));
+        inventory.createSection("items");
+        if (!save(inventory, new File(inventoriesDirectory, id.toLowerCase(Locale.ROOT) + ".yml"))) {
+            return false;
+        }
+        reload();
+        return true;
+    }
+
+    public boolean deleteInventory(String id) {
+        String key = id.toLowerCase(Locale.ROOT);
+        if (key.equals("default")) {
+            return false;
+        }
+        File file = getConfigurationFile(inventoriesDirectory, key);
+        if (file == null || !file.delete()) {
+            return false;
+        }
+        reload();
+        return true;
+    }
+
+    public boolean setInventoryTitle(String id, String title) {
+        FileConfiguration inventory = inventories.get(id.toLowerCase(Locale.ROOT));
+        if (inventory == null) {
+            return false;
+        }
+        inventory.set("title", title);
+        return saveAndReload(inventory, inventoriesDirectory, id);
+    }
+
+    public boolean setInventorySize(String id, int size) {
+        FileConfiguration inventory = inventories.get(id.toLowerCase(Locale.ROOT));
+        if (inventory == null || getSize(size) != size) {
+            return false;
+        }
+        inventory.set("size", size);
+        return saveAndReload(inventory, inventoriesDirectory, id);
+    }
+
+    public boolean setInventoryItem(String id, int slot, ItemStack item) {
+        FileConfiguration inventory = inventories.get(id.toLowerCase(Locale.ROOT));
+        if (inventory == null || item == null || item.getType().isAir() || slot < 0 || slot >= getSize(inventory.getInt("size", 54))) {
+            return false;
+        }
+        inventory.set("items." + slot + ".item", item.clone());
+        return saveAndReload(inventory, inventoriesDirectory, id);
+    }
+
+    public boolean removeInventoryItem(String id, int slot) {
+        FileConfiguration inventory = inventories.get(id.toLowerCase(Locale.ROOT));
+        if (inventory == null || !inventory.contains("items." + slot)) {
+            return false;
+        }
+        inventory.set("items." + slot, null);
+        return saveAndReload(inventory, inventoriesDirectory, id);
     }
 
     public Map<String, String> getPublicShopCommands() {
@@ -95,6 +341,35 @@ public final class CosmoShopManager {
             if (command.matches("[a-z0-9_-]{1,32}") && !commands.containsKey(command)) {
                 commands.put(command, id);
             }
+            for (String configuredCommand : shop.getStringList("commands")) {
+                String[] parts = configuredCommand.trim().toLowerCase(Locale.ROOT).split("\\s+");
+                if (parts.length == 1 && parts[0].matches("[a-z0-9_-]{1,32}") && !commands.containsKey(parts[0])) {
+                    commands.put(parts[0], id);
+                }
+            }
+        }
+        return commands;
+    }
+
+    public Map<String, Map<String, String>> getPublicShopSubcommands() {
+        Map<String, Map<String, String>> commands = new LinkedHashMap<>();
+        for (String id : getShopIds()) {
+            FileConfiguration shop = shops.get(id);
+            FileConfiguration section = sections.get(id);
+            if (section != null) {
+                String shopId = section.getString("shop", id).toLowerCase(Locale.ROOT);
+                shop = shops.get(shopId);
+            }
+            if (shop == null || !isEnabled(shop) || (section != null && !isEnabled(section))) {
+                continue;
+            }
+            for (String configuredCommand : shop.getStringList("commands")) {
+                String[] parts = configuredCommand.trim().toLowerCase(Locale.ROOT).split("\\s+");
+                if (parts.length != 2 || !parts[0].matches("[a-z0-9_-]{1,32}") || !parts[1].matches("[a-z0-9_-]{1,32}")) {
+                    continue;
+                }
+                commands.computeIfAbsent(parts[0], ignored -> new LinkedHashMap<>()).putIfAbsent(parts[1], id);
+            }
         }
         return commands;
     }
@@ -104,8 +379,7 @@ public final class CosmoShopManager {
         FileConfiguration shop = shops.get(id);
         FileConfiguration section = sections.get(id);
         if (shop == null && section != null) {
-            String shopId = section.getString("shop", id).toLowerCase(Locale.ROOT);
-            shop = shops.get(shopId);
+            shop = getShopForSection(id, section);
         }
         if (shop == null) {
             send(player, "no-menu", Map.of("menu", requestedId));
@@ -152,18 +426,21 @@ public final class CosmoShopManager {
         Map<Integer, Product> products = new HashMap<>();
         ConfigurationSection pageSection = getPageItems(shop, pages.get(page));
         if (pageSection != null) {
-            int automaticSlot = size >= 27 ? 9 : 0;
-            for (String key : pageSection.getKeys(false)) {
+            List<Integer> productSlots = getProductSlots(layout, size);
+            Set<Integer> occupiedSlots = new HashSet<>();
+            List<String> keys = new ArrayList<>(pageSection.getKeys(false));
+            keys.sort(Comparator.comparing(String::toLowerCase));
+            for (String key : keys) {
                 ConfigurationSection item = pageSection.getConfigurationSection(key);
                 Product product = item == null ? null : loadProduct(item);
                 if (product == null) {
                     continue;
                 }
-                int slot = getProductSlot(key, item, automaticSlot, size);
-                if (slot < 0 || slot >= size) {
+                int slot = getProductSlot(key, item, productSlots, occupiedSlots, size);
+                if (slot < 0) {
                     continue;
                 }
-                automaticSlot = slot + 1;
+                occupiedSlots.add(slot);
                 inventory.setItem(slot, displayProduct(player, product, cosmo));
                 products.put(slot, product);
             }
@@ -188,12 +465,45 @@ public final class CosmoShopManager {
         if (balanceSlot >= 0 && cosmo != null) {
             inventory.setItem(balanceSlot, createItem(player, balance, replacements(cosmo, cosmosService.getBalance(player.getUniqueId(), cosmo.getId()), Map.of())));
         }
-        openShops.put(inventory, new OpenShop(currency, products, actions));
+        openShops.put(inventory, new OpenShop(id, currency, products, actions));
         player.openInventory(inventory);
+    }
+
+    private List<String> getDirectoryShopIds() {
+        List<String> ids = new ArrayList<>();
+        for (String id : sections.keySet()) {
+            FileConfiguration section = sections.get(id);
+            FileConfiguration shop = getShopForSection(id, section);
+            if (shop != null && isEnabled(section) && isEnabled(shop)) {
+                ids.add(id);
+            }
+        }
+        for (String id : shops.keySet()) {
+            if (!sections.containsKey(id) && isEnabled(shops.get(id))) {
+                ids.add(id);
+            }
+        }
+        ids.sort(String.CASE_INSENSITIVE_ORDER);
+        return ids;
+    }
+
+    private FileConfiguration getShopForSection(String sectionId, FileConfiguration section) {
+        if (section == null) {
+            return shops.get(sectionId);
+        }
+        return shops.get(section.getString("shop", sectionId).toLowerCase(Locale.ROOT));
     }
 
     public void handleClick(InventoryClickEvent event) {
         Inventory top = event.getView().getTopInventory();
+        QuantitySelection quantitySelection = quantityMenus.get(top);
+        if (quantitySelection != null) {
+            event.setCancelled(true);
+            if (top.equals(event.getClickedInventory()) && event.getWhoClicked() instanceof Player) {
+                handleQuantityClick((Player) event.getWhoClicked(), top, quantitySelection, event.getSlot());
+            }
+            return;
+        }
         OpenShop openShop = openShops.get(top);
         if (openShop == null) {
             return;
@@ -211,16 +521,12 @@ public final class CosmoShopManager {
         if (product == null) {
             return;
         }
-        if (event.isRightClick()) {
-            sell((Player) event.getWhoClicked(), openShop.currency, product);
-        } else {
-            buy((Player) event.getWhoClicked(), openShop.currency, product);
-        }
+        openQuantityMenu((Player) event.getWhoClicked(), openShop.currency, product, !event.isRightClick());
     }
 
     public void handleDrag(InventoryDragEvent event) {
         Inventory top = event.getView().getTopInventory();
-        if (!openShops.containsKey(top)) {
+        if (!openShops.containsKey(top) && !quantityMenus.containsKey(top)) {
             return;
         }
         for (int rawSlot : event.getRawSlots()) {
@@ -233,9 +539,94 @@ public final class CosmoShopManager {
 
     public void handleClose(Inventory inventory) {
         openShops.remove(inventory);
+        quantityMenus.remove(inventory);
     }
 
-    private void buy(Player player, String currency, Product product) {
+    private void openQuantityMenu(Player player, String currency, Product product, boolean buying) {
+        Inventory inventory = Bukkit.createInventory(null, 27, ColorUtil.color(buying ? "&8Comprar cantidad" : "&8Vender cantidad"));
+        QuantitySelection selection = new QuantitySelection(currency, product, buying);
+        quantityMenus.put(inventory, selection);
+        renderQuantityMenu(inventory, selection);
+        player.openInventory(inventory);
+    }
+
+    private void handleQuantityClick(Player player, Inventory inventory, QuantitySelection selection, int slot) {
+        if (slot == 10) {
+            selection.amount = Math.max(1, selection.amount - 1);
+        } else if (slot == 11) {
+            selection.amount = Math.min(selection.getMaximumAmount(), selection.amount + 1);
+        } else if (slot == 13) {
+            selection.amount = Math.max(1, selection.amount - selection.getStackSize());
+        } else if (slot == 14) {
+            selection.amount = Math.min(selection.getMaximumAmount(), selection.amount + selection.getStackSize());
+        } else if (slot == 15) {
+            selection.amount = selection.getMaximumAmount();
+        } else if (slot == 16) {
+            quantityMenus.remove(inventory);
+            player.closeInventory();
+            int amount = selection.getAmount();
+            if (selection.buying) {
+                buy(player, selection.currency, selection.product, amount);
+            } else {
+                sell(player, selection.currency, selection.product, amount);
+            }
+            return;
+        } else if (slot == 17) {
+            player.closeInventory();
+            return;
+        } else {
+            return;
+        }
+        renderQuantityMenu(inventory, selection);
+    }
+
+    private void renderQuantityMenu(Inventory inventory, QuantitySelection selection) {
+        inventory.clear();
+        long price = calculatePrice(selection.buying ? selection.product.buyPrice : selection.product.sellPrice, selection.product, selection.getAmount());
+        String operation = selection.buying ? "Comprar" : "Vender";
+        ItemStack filler = quantityItem("GRAY_STAINED_GLASS_PANE", " ", List.of());
+        for (int slot = 0; slot < inventory.getSize(); slot++) {
+            inventory.setItem(slot, filler);
+        }
+        int stackSize = selection.getStackSize();
+        int stacks = (int) Math.ceil((double) selection.getAmount() / stackSize);
+        inventory.setItem(10, quantityItem("REDSTONE", "&c&l− 1", List.of("&7Quitar una unidad", "&7Cantidad: &f" + selection.getAmount())));
+        inventory.setItem(11, quantityItem("EMERALD", "&a&l+ 1", List.of("&7Añadir una unidad", "&7Máximo: &f" + selection.getMaximumAmount())));
+        ItemStack product = selection.product.item.clone();
+        product.setAmount(Math.min(selection.getAmount(), product.getMaxStackSize()));
+        ItemMeta meta = product.getItemMeta();
+        if (meta != null) {
+            List<String> lore = meta.hasLore() ? new ArrayList<>(meta.getLore()) : new ArrayList<>();
+            lore.add(" ");
+            lore.add("&f&lCantidad: &a" + selection.getAmount() + " &7ítem(s)");
+            lore.add("&7Equivale a &f" + stacks + "&7/15 stack(s)");
+            lore.add("&7Precio total: &e" + NumberFormatUtil.format(price));
+            meta.setLore(ColorUtil.color(lore));
+            product.setItemMeta(meta);
+        }
+        inventory.setItem(12, product);
+        inventory.setItem(13, quantityItem("REDSTONE_BLOCK", "&c&l− 1 stack", List.of("&7Quitar &f" + stackSize + " &7ítem(s)")));
+        inventory.setItem(14, quantityItem("CHEST", "&a&l+ 1 stack", List.of("&7Añadir &f" + stackSize + " &7ítem(s)", "&7Máximo: &f15 stacks")));
+        inventory.setItem(15, quantityItem("PAPER", "&e&lMáximo", List.of("&7Seleccionar &f15 stacks", "&7Cantidad: &f" + selection.getMaximumAmount())));
+        inventory.setItem(16, quantityItem("EMERALD", "&a&lConfirmar " + operation, List.of("&7Cantidad: &fx" + selection.getAmount(), "&7Precio total: &e" + NumberFormatUtil.format(price))));
+        inventory.setItem(17, quantityItem("BARRIER", "&c&lCancelar", List.of("&7No se realizará ninguna operación")));
+    }
+
+    private ItemStack quantityItem(String material, String name, List<String> lore) {
+        ItemStack item = XMaterial.matchXMaterial(material).map(XMaterial::parseItem).orElse(null);
+        if (item == null) {
+            return null;
+        }
+        ItemMeta meta = item.getItemMeta();
+        if (meta != null) {
+            meta.setDisplayName(ColorUtil.color(name));
+            meta.setLore(ColorUtil.color(lore));
+            item.setItemMeta(meta);
+        }
+        return item;
+    }
+
+    private void buy(Player player, String currency, Product product, int amount) {
         if (product.buyPrice <= 0L) {
             send(player, "shop-not-for-sale", Map.of());
             return;
@@ -245,22 +636,26 @@ public final class CosmoShopManager {
             send(player, "shop-unknown-currency", Map.of());
             return;
         }
-        if (player.getInventory().firstEmpty() == -1) {
+        if (!hasInventorySpace(player, product.item, amount)) {
             send(player, "inventory-full", Map.of());
             return;
         }
-        if (!cosmosService.withdraw(player.getUniqueId(), cosmo.getId(), product.buyPrice)) {
+        long price = calculatePrice(product.buyPrice, product, amount);
+        if (!cosmosService.withdraw(player.getUniqueId(), cosmo.getId(), price)) {
             send(player, "insufficient-funds", Map.of("cosmo", ColorUtil.color(cosmo.getDisplayName())));
             return;
         }
-        Map<Integer, ItemStack> remaining = player.getInventory().addItem(product.item.clone());
-        for (ItemStack leftover : remaining.values()) {
-            player.getWorld().dropItemNaturally(player.getLocation(), leftover);
+        int remaining = amount;
+        while (remaining > 0) {
+            ItemStack stack = product.item.clone();
+            stack.setAmount(Math.min(remaining, stack.getMaxStackSize()));
+            player.getInventory().addItem(stack);
+            remaining -= stack.getAmount();
         }
-        send(player, "shop-purchase-success", transactionReplacements(product, cosmo, product.buyPrice));
+        send(player, "shop-purchase-success", transactionReplacements(product, cosmo, price, amount));
     }
 
-    private void sell(Player player, String currency, Product product) {
+    private void sell(Player player, String currency, Product product, int amount) {
         if (product.sellPrice <= 0L) {
             send(player, "shop-not-for-sell", Map.of());
             return;
@@ -270,7 +665,17 @@ public final class CosmoShopManager {
             send(player, "shop-unknown-currency", Map.of());
             return;
         }
-        int remaining = product.item.getAmount();
+        int available = 0;
+        for (ItemStack stack : player.getInventory().getContents()) {
+            if (stack != null && stack.isSimilar(product.item)) {
+                available += stack.getAmount();
+            }
+        }
+        if (available < amount) {
+            send(player, "shop-sell-missing-items", Map.of());
+            return;
+        }
+        int remaining = amount;
         for (int slot = 0; slot < player.getInventory().getSize() && remaining > 0; slot++) {
             ItemStack stack = player.getInventory().getItem(slot);
             if (stack == null || !stack.isSimilar(product.item)) {
@@ -283,25 +688,32 @@ public final class CosmoShopManager {
                 player.getInventory().setItem(slot, null);
             }
         }
-        if (remaining > 0) {
-            restoreSoldItems(player, product.item, product.item.getAmount() - remaining);
-            send(player, "shop-sell-missing-items", Map.of());
-            return;
-        }
-        cosmosService.deposit(player.getUniqueId(), cosmo.getId(), product.sellPrice);
-        send(player, "shop-sell-success", transactionReplacements(product, cosmo, product.sellPrice));
+        long price = calculatePrice(product.sellPrice, product, amount);
+        cosmosService.deposit(player.getUniqueId(), cosmo.getId(), price);
+        send(player, "shop-sell-success", transactionReplacements(product, cosmo, price, amount));
     }
 
-    private void restoreSoldItems(Player player, ItemStack item, int amount) {
-        if (amount <= 0) {
-            return;
+    private boolean hasInventorySpace(Player player, ItemStack item, int amount) {
+        int capacity = 0;
+        for (ItemStack stack : player.getInventory().getContents()) {
+            if (stack == null || stack.getType().isAir()) {
+                capacity += item.getMaxStackSize();
+            } else if (stack.isSimilar(item)) {
+                capacity += Math.max(0, stack.getMaxStackSize() - stack.getAmount());
+            }
+            if (capacity >= amount) {
+                return true;
+            }
         }
-        ItemStack restored = item.clone();
-        restored.setAmount(amount);
-        Map<Integer, ItemStack> remaining = player.getInventory().addItem(restored);
-        for (ItemStack leftover : remaining.values()) {
-            player.getWorld().dropItemNaturally(player.getLocation(), leftover);
+        return false;
+    }
+
+    private long calculatePrice(long basePrice, Product product, int amount) {
+        if (basePrice <= 0L || amount <= 0) {
+            return basePrice;
         }
+        double price = (double) basePrice * amount / product.item.getAmount();
+        return price >= Long.MAX_VALUE ? Long.MAX_VALUE : Math.max(1L, (long) Math.ceil(price));
     }
 
     private Product loadProduct(ConfigurationSection section) {
@@ -353,16 +765,23 @@ public final class CosmoShopManager {
         return "root".equals(page) ? shop : null;
     }
 
-    private int getProductSlot(String key, ConfigurationSection item, int automaticSlot, int size) {
+    private int getProductSlot(String key, ConfigurationSection item, List<Integer> productSlots, Set<Integer> occupiedSlots, int size) {
+        int slot;
         try {
-            return Integer.parseInt(key);
+            slot = Integer.parseInt(key);
+            return slot >= 0 && slot < size && productSlots.contains(slot) && !occupiedSlots.contains(slot) ? slot : -1;
         } catch (NumberFormatException ignored) {
         }
         if (item.contains("slot")) {
-            return item.getInt("slot", -1);
+            slot = item.getInt("slot", -1);
+            return slot >= 0 && slot < size && productSlots.contains(slot) && !occupiedSlots.contains(slot) ? slot : -1;
         }
-        int lastProductSlot = size >= 27 ? size - 10 : size - 1;
-        return automaticSlot <= lastProductSlot ? automaticSlot : -1;
+        for (int productSlot : productSlots) {
+            if (!occupiedSlots.contains(productSlot)) {
+                return productSlot;
+            }
+        }
+        return -1;
     }
 
     private boolean isEnabled(FileConfiguration configuration) {
@@ -409,17 +828,30 @@ public final class CosmoShopManager {
 
     private void loadDirectory(File directory, Map<String, FileConfiguration> destination) {
         destination.clear();
-        File[] files = directory.listFiles((current, name) -> name.toLowerCase(Locale.ROOT).endsWith(".yml"));
+        File[] files = directory.listFiles((current, name) -> {
+            String lowerName = name.toLowerCase(Locale.ROOT);
+            return lowerName.endsWith(".yml") || lowerName.endsWith(".yaml");
+        });
         if (files == null) {
             return;
         }
         for (File file : files) {
             String name = file.getName();
-            destination.put(name.substring(0, name.length() - 4).toLowerCase(Locale.ROOT), YamlConfiguration.loadConfiguration(file));
+            destination.put(name.substring(0, name.lastIndexOf('.')).toLowerCase(Locale.ROOT), YamlConfiguration.loadConfiguration(file));
         }
     }
 
-    private void loadLayoutItems(Player player, Inventory inventory, FileConfiguration layout) {
+    private File resolveDirectory(File configDirectory, String name) {
+        File configuredDirectory = new File(configDirectory, name);
+        return configuredDirectory.isDirectory() ? configuredDirectory : new File(plugin.getDataFolder(), name);
+    }
+
+    private File resolveFile(File configDirectory, String name) {
+        File configuredFile = new File(configDirectory, name);
+        return configuredFile.isFile() ? configuredFile : new File(plugin.getDataFolder(), name);
+    }
+
+    private void loadLayoutItems(Player player, Inventory inventory, ConfigurationSection layout) {
         ConfigurationSection items = layout.getConfigurationSection("items");
         if (items == null) {
             return;
@@ -429,7 +861,12 @@ public final class CosmoShopManager {
                 int slot = Integer.parseInt(key);
                 ConfigurationSection item = items.getConfigurationSection(key);
                 if (item != null && slot >= 0 && slot < inventory.getSize()) {
-                    ItemStack layoutItem = createItem(player, item, Map.of());
+                    ItemStack layoutItem = item.getItemStack("item");
+                    if (layoutItem == null) {
+                        layoutItem = createItem(player, item, Map.of());
+                    } else {
+                        layoutItem = layoutItem.clone();
+                    }
                     if (layoutItem != null) {
                         inventory.setItem(slot, layoutItem);
                     } else {
@@ -461,6 +898,39 @@ public final class CosmoShopManager {
         return size >= 9 && size <= 54 && size % 9 == 0 ? size : 54;
     }
 
+    private List<Integer> getProductSlots(FileConfiguration layout, int size) {
+        List<Integer> slots = new ArrayList<>();
+        for (int slot : layout.getIntegerList("product-slots")) {
+            if (slot >= 0 && slot < size && !slots.contains(slot)) {
+                slots.add(slot);
+            }
+        }
+        if (!slots.isEmpty()) {
+            return slots;
+        }
+        return defaultProductSlots(size);
+    }
+
+    private List<Integer> defaultProductSlots(int size) {
+        List<Integer> slots = new ArrayList<>();
+        int firstSlot = size >= 27 ? 9 : 0;
+        int lastSlot = size >= 27 ? size - 10 : size - 1;
+        for (int slot = firstSlot; slot <= lastSlot; slot++) {
+            slots.add(slot);
+        }
+        return slots;
+    }
+
+    private List<Integer> getMenuSlots(List<Integer> configuredSlots, int size) {
+        List<Integer> slots = new ArrayList<>();
+        for (int slot : configuredSlots) {
+            if (slot >= 0 && slot < size && !slots.contains(slot)) {
+                slots.add(slot);
+            }
+        }
+        return slots.isEmpty() ? defaultProductSlots(size) : slots;
+    }
+
     private int getSlot(ConfigurationSection section, int fallback, int size) {
         if (section == null) {
             return -1;
@@ -477,9 +947,9 @@ public final class CosmoShopManager {
         return values;
     }
 
-    private Map<String, String> transactionReplacements(Product product, CosmoDefinition cosmo, long price) {
+    private Map<String, String> transactionReplacements(Product product, CosmoDefinition cosmo, long price, int amount) {
         String name = product.item.hasItemMeta() && product.item.getItemMeta().hasDisplayName() ? product.item.getItemMeta().getDisplayName() : product.item.getType().name();
-        return Map.of("amount", String.valueOf(product.item.getAmount()), "item", name, "price", NumberFormatUtil.format(price), "cosmo", ColorUtil.color(cosmo.getDisplayName()));
+        return Map.of("amount", String.valueOf(amount), "item", name, "price", NumberFormatUtil.format(price), "cosmo", ColorUtil.color(cosmo.getDisplayName()));
     }
 
     private String replace(Player player, String value, Map<String, String> replacements) {
@@ -526,6 +996,40 @@ public final class CosmoShopManager {
         plugin.getMessageManager().send(player, key, replacements);
     }
 
+    private boolean saveAndReload(FileConfiguration configuration, File directory, String id) {
+        File file = getConfigurationFile(directory, id);
+        if (file == null || !save(configuration, file)) {
+            return false;
+        }
+        reload();
+        return true;
+    }
+
+    private File getConfigurationFile(File directory, String id) {
+        String key = id.toLowerCase(Locale.ROOT);
+        for (String extension : List.of(".yml", ".yaml")) {
+            File file = new File(directory, key + extension);
+            if (file.isFile()) {
+                return file;
+            }
+        }
+        return null;
+    }
+
+    private boolean save(FileConfiguration configuration, File file) {
+        try {
+            configuration.save(file);
+            return true;
+        } catch (IOException exception) {
+            plugin.getLogger().log(Level.SEVERE, "No se pudo guardar " + file.getName(), exception);
+            return false;
+        }
+    }
+
+    private boolean isValidId(String id) {
+        return id != null && id.matches("[A-Za-z0-9_-]{3,24}");
+    }
+
     private static final class Product {
         private final ItemStack item;
         private final long buyPrice;
@@ -538,12 +1042,39 @@ public final class CosmoShopManager {
         }
     }
 
+    private static final class QuantitySelection {
+        private final String currency;
+        private final Product product;
+        private final boolean buying;
+        private int amount = 1;
+
+        private QuantitySelection(String currency, Product product, boolean buying) {
+            this.currency = currency;
+            this.product = product;
+            this.buying = buying;
+        }
+
+        private int getAmount() {
+            return amount;
+        }
+
+        private int getStackSize() {
+            return Math.max(1, product.item.getMaxStackSize());
+        }
+
+        private int getMaximumAmount() {
+            return getStackSize() * 15;
+        }
+    }
+
     private static final class OpenShop {
+        private final String id;
         private final String currency;
         private final Map<Integer, Product> products;
         private final Map<Integer, Runnable> actions;
 
-        private OpenShop(String currency, Map<Integer, Product> products, Map<Integer, Runnable> actions) {
+        private OpenShop(String id, String currency, Map<Integer, Product> products, Map<Integer, Runnable> actions) {
+            this.id = id;
             this.currency = currency;
             this.products = products;
             this.actions = actions;

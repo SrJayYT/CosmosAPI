@@ -1,26 +1,37 @@
-# Diseño reutilizable para todas las tiendas de plugins/CosmosAPI/shops/.
-# Los slots empiezan en 0. Los productos sobrescriben los adornos del mismo slot.
-title: '&8✦ &d&l{shop} &8• &7Página &f{page}'
+# Diseño profesional reutilizable para todas las tiendas de plugins/CosmosAPI/shops/.
+# Los slots empiezan en 0. Los productos solo pueden ocupar product-slots.
+title: '&8✦ &d&l{shop} &8┃ &7Página &f{page}'
 size: 54
+
+product-slots: [10, 11, 12, 13, 14, 15, 16, 19, 20, 21, 22, 23, 24, 25, 28, 29, 30, 31, 32, 33, 34]
 
 balance-item:
   slot: 4
   material: NETHER_STAR
-  name: '&d&l{cosmo-name}'
+  name: '&d&lSaldo disponible'
   lore:
-    - '&7Tu saldo: &f{balance}'
+    - '&8┃ &7Moneda: {cosmo-name}'
+    - '&8┃ &7Tienes: &f{balance}'
+    - ''
+    - '&d✦ &7Úsala para comprar en esta tienda.'
 
 previous-page:
   slot: 45
-  material: ARROW
+  material: SPECTRAL_ARROW
   name: '&c&l← Página anterior'
-  lore: ['&7Ir a la página &f{page}']
+  lore:
+    - '&8┃ &7Volver a la página &f{page}'
+    - ''
+    - '&c▶ &fClick para volver'
 
 next-page:
   slot: 53
-  material: ARROW
+  material: SPECTRAL_ARROW
   name: '&a&lPágina siguiente →'
-  lore: ['&7Ir a la página &f{page}']
+  lore:
+    - '&8┃ &7Ir a la página &f{page}'
+    - ''
+    - '&a▶ &fClick para continuar'
 
 items:
   '0': {material: PURPLE_STAINED_GLASS_PANE, name: ' ', lore: []}
@@ -31,11 +42,26 @@ items:
   '6': {material: PURPLE_STAINED_GLASS_PANE, name: ' ', lore: []}
   '7': {material: PURPLE_STAINED_GLASS_PANE, name: ' ', lore: []}
   '8': {material: PURPLE_STAINED_GLASS_PANE, name: ' ', lore: []}
+  '9': {material: BLACK_STAINED_GLASS_PANE, name: ' ', lore: []}
+  '17': {material: BLACK_STAINED_GLASS_PANE, name: ' ', lore: []}
+  '18': {material: BLACK_STAINED_GLASS_PANE, name: ' ', lore: []}
+  '26': {material: BLACK_STAINED_GLASS_PANE, name: ' ', lore: []}
+  '27': {material: BLACK_STAINED_GLASS_PANE, name: ' ', lore: []}
+  '35': {material: BLACK_STAINED_GLASS_PANE, name: ' ', lore: []}
+  '36': {material: BLACK_STAINED_GLASS_PANE, name: ' ', lore: []}
+  '37': {material: PURPLE_STAINED_GLASS_PANE, name: ' ', lore: []}
+  '38': {material: PURPLE_STAINED_GLASS_PANE, name: ' ', lore: []}
+  '39': {material: PURPLE_STAINED_GLASS_PANE, name: ' ', lore: []}
+  '40': {material: AMETHYST_SHARD, name: '&d&lCOMERCIO COSMOS', lore: ['&8┃ &7Click izquierdo para comprar.', '&8┃ &7Click derecho para vender.', '', '&d✦ &7Explora todas las páginas.']}
+  '41': {material: PURPLE_STAINED_GLASS_PANE, name: ' ', lore: []}
+  '42': {material: PURPLE_STAINED_GLASS_PANE, name: ' ', lore: []}
+  '43': {material: PURPLE_STAINED_GLASS_PANE, name: ' ', lore: []}
+  '44': {material: BLACK_STAINED_GLASS_PANE, name: ' ', lore: []}
   '45': {material: BLACK_STAINED_GLASS_PANE, name: ' ', lore: []}
   '46': {material: BLACK_STAINED_GLASS_PANE, name: ' ', lore: []}
   '47': {material: BLACK_STAINED_GLASS_PANE, name: ' ', lore: []}
   '48': {material: BLACK_STAINED_GLASS_PANE, name: ' ', lore: []}
-  '49': {material: BLACK_STAINED_GLASS_PANE, name: ' ', lore: []}
+  '49': {material: AMETHYST_SHARD, name: '&d&lCOSMOS SHOP', lore: ['&8┃ &7Compra con click izquierdo.', '&8┃ &7Vende con click derecho.']}
   '50': {material: BLACK_STAINED_GLASS_PANE, name: ' ', lore: []}
   '51': {material: BLACK_STAINED_GLASS_PANE, name: ' ', lore: []}
   '52': {material: BLACK_STAINED_GLASS_PANE, name: ' ', lore: []}

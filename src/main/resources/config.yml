@@ -9,7 +9,7 @@ anti-alt:
 menus:
   # Habilita las tiendas y comandos públicos configurados en menus.yml.
   # /cosmo view y /cosmo tops permanecen disponibles aunque esté desactivado.
-  enabled: false
+  enabled: true
 
 holograms:
   # Habilita los hologramas de ranking mediante DecentHolograms.

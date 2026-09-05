@@ -1,18 +1,18 @@
 enable: true
-slot: 10
-title: '&a&lMATERIALES'
-command: materiales
-shop: general
+slot: 14
+title: '&d&lUTILIDADES'
+command: utilidades
+shop: utilidades
 permission: ''
 disabled-worlds: []
 inventory: default
 economy: EXTERNAL:CosmosAPI:anormal
 
 item:
-  material: GRASS_BLOCK
-  name: '&a&lMateriales'
+  material: ENDER_CHEST
+  name: '&d&lUtilidades'
   lore:
     - '&8━━━━━━━━━━━━━━━━━━'
-    - '&7Bloques y recursos esenciales.'
+    - '&7Objetos prácticos para tu aventura.'
     - '&eClick para abrir'
     - '&8━━━━━━━━━━━━━━━━━━'

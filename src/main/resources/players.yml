@@ -1,1 +1,16 @@
-players: {}
+# VOID: players: {}
+players:
+  686dda4c-bf17-322f-b9a1-59897ee5fdbc:
+    balances:
+      cosmo: 155
+      anormal: 5500
+    last-time-rewards:
+      anormal: 1788553324072
+      cosmo: 1788553324072
+  a979089f-790f-3072-9022-1a05ee2ac5a7:
+    balances:
+      cosmo: 89
+      anormal: 13
+    last-time-rewards:
+      anormal: 1788552005423
+      cosmo: 1788552005423

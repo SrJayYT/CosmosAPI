@@ -49,6 +49,13 @@ public final class CosmosExternalEconomy extends ExternalEconomy {
     }
 
     @Override
+    public String formatPrice(double amount) {
+        return Double.isFinite(amount) && amount >= 0D && amount <= Long.MAX_VALUE
+                ? Long.toString((long) amount)
+                : "0";
+    }
+
+    @Override
     public double getBalance(OfflinePlayer player) {
         if (player == null) {
             return 0D;

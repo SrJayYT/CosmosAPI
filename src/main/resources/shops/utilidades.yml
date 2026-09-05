@@ -1,0 +1,54 @@
+enabled: true
+name: '&d&lUTILIDADES'
+inventory: default
+commands:
+  - shop utilidades
+  - shop-utilidades
+
+pages:
+  pagina-1:
+    items:
+      '10': {material: TORCH, amount: 64, name: '&e&l64 Antorchas', lore: ['&7No dejes ningún rincón a oscuras.'], buy: 10, sell: 4}
+      '11': {material: CHEST, amount: 8, name: '&6&l8 Cofres', lore: ['&7Guarda tus objetos importantes.'], buy: 24, sell: 10}
+      '12': {material: CRAFTING_TABLE, amount: 1, name: '&6&lMesa de crafteo', lore: ['&7Crea objetos desde cualquier lugar.'], buy: 12, sell: 5}
+      '13': {material: FURNACE, amount: 1, name: '&8&lHorno', lore: ['&7Cocina y funde tus recursos.'], buy: 18, sell: 7}
+      '14': {material: WATER_BUCKET, amount: 1, name: '&9&lCubo de agua', lore: ['&7Imprescindible para explorar.'], buy: 30, sell: 12}
+      '15': {material: ENDER_PEARL, amount: 8, name: '&5&l8 Perlas de ender', lore: ['&7Muévete rápidamente por el mundo.'], buy: 70, sell: 30}
+      '16': {material: NAME_TAG, amount: 1, name: '&b&lEtiqueta', lore: ['&7Pon nombre a tus criaturas.'], buy: 45, sell: 18}
+      '19': {material: BED, amount: 1, name: '&c&lCama', lore: ['&7Descansa y establece tu punto de reaparición.'], buy: 32, sell: 13}
+      '20': {material: CAMPFIRE, amount: 1, name: '&6&lHoguera', lore: ['&7Cocina y crea un campamento acogedor.'], buy: 45, sell: 18}
+      '21': {material: GRINDSTONE, amount: 1, name: '&7&lAfiladora', lore: ['&7Repara y elimina encantamientos.'], buy: 65, sell: 26}
+      '22': {material: STONECUTTER, amount: 1, name: '&7&lCortapiedras', lore: ['&7Trabaja bloques de piedra eficientemente.'], buy: 55, sell: 22}
+      '23': {material: SMOKER, amount: 1, name: '&8&lAhumador', lore: ['&7Cocina alimentos más rápido.'], buy: 38, sell: 15}
+      '24': {material: BLAST_FURNACE, amount: 1, name: '&8&lAlto horno', lore: ['&7Funde minerales a toda velocidad.'], buy: 75, sell: 31}
+      '25': {material: CARTOGRAPHY_TABLE, amount: 1, name: '&e&lMesa de cartografía', lore: ['&7Prepara y mejora tus mapas.'], buy: 45, sell: 18}
+      '28': {material: LOOM, amount: 1, name: '&d&lTelar', lore: ['&7Diseña estandartes personalizados.'], buy: 32, sell: 13}
+      '29': {material: SMITHING_TABLE, amount: 1, name: '&8&lMesa de herrería', lore: ['&7Mejora tu equipamiento.'], buy: 62, sell: 25}
+      '30': {material: BOOK, amount: 16, name: '&f&l16 Libros', lore: ['&7Para encantamientos y bibliotecas.'], buy: 36, sell: 14}
+      '31': {material: PAPER, amount: 64, name: '&f&l64 Papeles', lore: ['&7Crea libros, mapas y cohetes.'], buy: 28, sell: 11}
+      '32': {material: ITEM_FRAME, amount: 16, name: '&6&l16 Marcos', lore: ['&7Expón tus objetos más valiosos.'], buy: 48, sell: 20}
+      '33': {material: ARMOR_STAND, amount: 8, name: '&7&l8 Soportes de armadura', lore: ['&7Muestra tu mejor equipamiento.'], buy: 58, sell: 24}
+      '34': {material: SADDLE, amount: 1, name: '&6&lSilla de montar', lore: ['&7Monta a tus animales favoritos.'], buy: 105, sell: 43}
+  pagina-2:
+    items:
+      '10': {material: LANTERN, amount: 8, name: '&e&l8 Faroles', lore: ['&7Iluminación elegante y segura.'], buy: 35, sell: 14}
+      '11': {material: BARREL, amount: 8, name: '&6&l8 Barriles', lore: ['&7Almacenamiento compacto.'], buy: 28, sell: 11}
+      '12': {material: ANVIL, amount: 1, name: '&8&lYunque', lore: ['&7Repara y combina tus objetos.'], buy: 120, sell: 50}
+      '13': {material: ENCHANTING_TABLE, amount: 1, name: '&d&lMesa de encantamientos', lore: ['&7Mejora tu equipamiento.'], buy: 180, sell: 75}
+      '14': {material: CLOCK, amount: 1, name: '&6&lReloj', lore: ['&7Controla el paso del tiempo.'], buy: 40, sell: 16}
+      '15': {material: COMPASS, amount: 1, name: '&c&lBrújula', lore: ['&7Encuentra siempre el camino.'], buy: 35, sell: 14}
+      '16': {material: LEAD, amount: 4, name: '&f&l4 Correas', lore: ['&7Lleva tus animales contigo.'], buy: 30, sell: 12}
+      '19': {material: SPYGLASS, amount: 1, name: '&6&lCatalejo', lore: ['&7Observa lugares y objetivos lejanos.'], buy: 85, sell: 35}
+      '20': {material: RECOVERY_COMPASS, amount: 1, name: '&d&lBrújula de recuperación', lore: ['&7Encuentra el lugar de tu última muerte.'], buy: 280, sell: 115}
+      '21': {material: MAP, amount: 8, name: '&f&l8 Mapas', lore: ['&7Registra todas tus exploraciones.'], buy: 32, sell: 13}
+      '22': {material: FIREWORK_ROCKET, amount: 32, name: '&c&l32 Cohetes', lore: ['&7Impulso para tu élitro.'], buy: 70, sell: 29}
+      '23': {material: ELYTRA, amount: 1, name: '&d&lÉlitro', lore: ['&7Surca el cielo con libertad.'], buy: 950, sell: 390}
+      '24': {material: SHULKER_BOX, amount: 1, name: '&5&lCaja de shulker', lore: ['&7Almacenamiento portátil de alto nivel.'], buy: 260, sell: 105}
+      '25': {material: ENDER_CHEST, amount: 1, name: '&5&lCofre de ender', lore: ['&7Accede a tus objetos desde cualquier lugar.'], buy: 190, sell: 78}
+      '28': {material: OBSIDIAN, amount: 32, name: '&5&l32 Obsidianas', lore: ['&7Construye portales y defensas.'], buy: 130, sell: 55}
+      '29': {material: LAVA_BUCKET, amount: 1, name: '&c&lCubo de lava', lore: ['&7Una fuente de energía y peligro.'], buy: 38, sell: 15}
+      '30': {material: POWDER_SNOW_BUCKET, amount: 1, name: '&f&lCubo de nieve en polvo', lore: ['&7Un recurso especial de la montaña.'], buy: 50, sell: 20}
+      '31': {material: SHEARS, amount: 1, name: '&7&lTijeras', lore: ['&7Recoge lana, hojas y más.'], buy: 24, sell: 9}
+      '32': {material: FLINT_AND_STEEL, amount: 1, name: '&8&lMechero', lore: ['&7Enciende portales y fogatas.'], buy: 18, sell: 7}
+      '33': {material: BRUSH, amount: 1, name: '&6&lCepillo arqueológico', lore: ['&7Busca secretos en la arena sospechosa.'], buy: 72, sell: 30}
+      '34': {material: GOAT_HORN, amount: 1, name: '&e&lCuerno de cabra', lore: ['&7Haz que tu llegada se escuche.'], buy: 95, sell: 39}

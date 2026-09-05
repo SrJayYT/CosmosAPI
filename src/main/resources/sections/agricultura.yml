@@ -1,18 +1,18 @@
 enable: true
-slot: 10
-title: '&a&lMATERIALES'
-command: materiales
-shop: general
+slot: 13
+title: '&e&lAGRICULTURA'
+command: agricultura
+shop: agricultura
 permission: ''
 disabled-worlds: []
 inventory: default
 economy: EXTERNAL:CosmosAPI:anormal
 
 item:
-  material: GRASS_BLOCK
-  name: '&a&lMateriales'
+  material: WHEAT
+  name: '&e&lAgricultura'
   lore:
     - '&8━━━━━━━━━━━━━━━━━━'
-    - '&7Bloques y recursos esenciales.'
+    - '&7Semillas, comida y productos de granja.'
     - '&eClick para abrir'
     - '&8━━━━━━━━━━━━━━━━━━'

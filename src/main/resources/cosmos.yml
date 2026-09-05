@@ -7,3 +7,10 @@ cosmos:
     enabled: true
     interval: 1
     unit: MINUTE
+  cosmo:
+    display-name: '&#FF001F&lC&#FF2F17&lo&#FF5D10&ls&#FF8C08&lm&#FFBA00&lo'
+    type: TIME
+    reward: 3
+    enabled: true
+    interval: 1
+    unit: MINUTE

@@ -278,7 +278,8 @@ public final class MenuManager {
             }
             MenuItem item = entry.getValue();
             inventory.setItem(slot, item.getItem());
-            if (item.getPrice() > 0L && cosmosService.getCosmo(item.getCosmoId()) != null) {
+            CosmoDefinition cosmo = cosmosService.getCosmo(item.getCosmoId());
+            if (item.getPrice() > 0L && cosmo != null && cosmo.isEnabled()) {
                 displayedItems.put(slot, item);
             }
         }
@@ -313,7 +314,7 @@ public final class MenuManager {
         ShopMenu menu = getMenu(menuId);
         Inventory inventory = menu == null ? null : createInventory(menu);
         CosmoDefinition cosmo = cosmosService.getCosmo(cosmoId);
-        if (menu == null || inventory == null || slot < 0 || slot >= inventory.getSize() || isShopNavigationSlot(menu, inventory.getSize(), slot) || cosmo == null || price <= 0L) {
+        if (menu == null || inventory == null || slot < 0 || slot >= inventory.getSize() || isShopNavigationSlot(menu, inventory.getSize(), slot) || cosmo == null || !cosmo.isEnabled() || price <= 0L) {
             return false;
         }
         String path = "menus." + menu.getId() + ".items." + slot;

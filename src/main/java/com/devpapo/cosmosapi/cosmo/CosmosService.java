@@ -191,11 +191,55 @@ public final class CosmosService {
 
     public void setBalance(UUID playerId, String cosmoId, long amount) {
         CosmoDefinition cosmo = getCosmo(cosmoId);
-        if (cosmo == null) {
+        if (cosmo == null || !cosmo.isEnabled()) {
             return;
         }
         storage.getPlayers().set("players." + playerId + ".balances." + cosmo.getId(), amount);
         storage.savePlayers();
+    }
+
+    public int resetBalances(String cosmoId) {
+        CosmoDefinition cosmo = getCosmo(cosmoId);
+        ConfigurationSection players = storage.getPlayers().getConfigurationSection("players");
+        if (cosmo == null || players == null) {
+            return 0;
+        }
+        int resetPlayers = 0;
+        for (String playerId : players.getKeys(false)) {
+            String path = "players." + playerId + ".balances." + cosmo.getId();
+            if (storage.getPlayers().getLong(path, 0L) != 0L) {
+                storage.getPlayers().set(path, 0L);
+                resetPlayers++;
+            }
+        }
+        storage.savePlayers();
+        return resetPlayers;
+    }
+
+    public int resetAllBalances() {
+        ConfigurationSection players = storage.getPlayers().getConfigurationSection("players");
+        if (players == null) {
+            return 0;
+        }
+        int resetPlayers = 0;
+        for (String playerId : players.getKeys(false)) {
+            boolean reset = false;
+            for (CosmoDefinition cosmo : cosmos.values()) {
+                if (!cosmo.isEnabled()) {
+                    continue;
+                }
+                String path = "players." + playerId + ".balances." + cosmo.getId();
+                if (storage.getPlayers().getLong(path, 0L) != 0L) {
+                    storage.getPlayers().set(path, 0L);
+                    reset = true;
+                }
+            }
+            if (reset) {
+                resetPlayers++;
+            }
+        }
+        storage.savePlayers();
+        return resetPlayers;
     }
 
     public void deposit(UUID playerId, String cosmoId, long amount) {
@@ -206,7 +250,8 @@ public final class CosmosService {
     }
 
     public void adjustBalance(UUID playerId, String cosmoId, long amount) {
-        if (getCosmo(cosmoId) != null) {
+        CosmoDefinition cosmo = getCosmo(cosmoId);
+        if (cosmo != null && cosmo.isEnabled()) {
             setBalance(playerId, cosmoId, addSafely(getBalance(playerId, cosmoId), amount));
         }
     }

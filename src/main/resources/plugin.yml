@@ -10,6 +10,7 @@ softdepend:
   - PlaceholderAPI
   - TAB
   - DecentHolograms
+  - PlayerKits2
 commands:
   cosmo:
     description: Administra los cosmos y sus menús.

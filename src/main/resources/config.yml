@@ -14,3 +14,11 @@ menus:
 holograms:
   # Habilita los hologramas de ranking mediante DecentHolograms.
   enabled: true
+
+playerkits2:
+  # Cobra cosmos al reclamar kits de PlayerKits2. El precio nativo del kit debe ser 0.
+  enabled: false
+  kits:
+    # starter:
+    #   cosmo: cosmo
+    #   price: 100

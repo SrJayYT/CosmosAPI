@@ -1,6 +1,8 @@
 package com.devpapo.cosmosapi.economy;
 
 import com.devpapo.cosmosapi.cosmo.CosmosService;
+import com.devpapo.cosmosapi.cosmo.CosmoDefinition;
+import com.devpapo.cosmosapi.util.NumberFormatUtil;
 import me.gypopo.economyshopgui.api.objects.ExternalEconomy;
 import org.bukkit.OfflinePlayer;
 
@@ -51,12 +53,13 @@ public final class CosmosExternalEconomy extends ExternalEconomy {
         long wholeAmount = Double.isFinite(amount) && amount >= 0D && amount <= Long.MAX_VALUE
                 ? (long) amount
                 : 0L;
-        return wholeAmount + " " + getFriendly();
+        return NumberFormatUtil.format(wholeAmount) + " " + getFriendly();
     }
 
     @Override
     public double getBalance(OfflinePlayer player) {
-        if (player == null) {
+        CosmoDefinition cosmo = cosmosService.getCosmo(cosmoId);
+        if (player == null || cosmo == null || !cosmo.isEnabled()) {
             return 0D;
         }
         return cosmosService.getBalance(player.getUniqueId(), cosmoId);

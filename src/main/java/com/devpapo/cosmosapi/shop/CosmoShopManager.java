@@ -186,7 +186,7 @@ public final class CosmoShopManager {
     }
 
     public boolean createShop(String id, String currency) {
-        if (!isValidId(id) || shops.containsKey(id.toLowerCase(Locale.ROOT)) || cosmosService.getCosmo(currency) == null) {
+        if (!isValidId(id) || shops.containsKey(id.toLowerCase(Locale.ROOT)) || !isActiveCosmo(currency)) {
             return false;
         }
         FileConfiguration shop = new YamlConfiguration();
@@ -389,6 +389,10 @@ public final class CosmoShopManager {
             send(player, "shop-disabled", Map.of());
             return;
         }
+        if (!isActiveCosmo(getCurrency(shop, section))) {
+            send(player, "shop-unknown-currency", Map.of());
+            return;
+        }
         if (!hasPermission(player, shop) || (section != null && !hasPermission(player, section))) {
             send(player, "shop-no-permission", Map.of());
             return;
@@ -474,12 +478,12 @@ public final class CosmoShopManager {
         for (String id : sections.keySet()) {
             FileConfiguration section = sections.get(id);
             FileConfiguration shop = getShopForSection(id, section);
-            if (shop != null && isEnabled(section) && isEnabled(shop)) {
+            if (shop != null && isEnabled(section) && isEnabled(shop) && isActiveCosmo(getCurrency(shop, section))) {
                 ids.add(id);
             }
         }
         for (String id : shops.keySet()) {
-            if (!sections.containsKey(id) && isEnabled(shops.get(id))) {
+            if (!sections.containsKey(id) && isEnabled(shops.get(id)) && isActiveCosmo(getCurrency(shops.get(id), null))) {
                 ids.add(id);
             }
         }
@@ -786,6 +790,11 @@ public final class CosmoShopManager {
 
     private boolean isEnabled(FileConfiguration configuration) {
         return configuration.contains("enabled") ? configuration.getBoolean("enabled") : configuration.getBoolean("enable", true);
+    }
+
+    private boolean isActiveCosmo(String currency) {
+        CosmoDefinition cosmo = cosmosService.getCosmo(currency);
+        return cosmo != null && cosmo.isEnabled();
     }
 
     private boolean hasPermission(Player player, FileConfiguration configuration) {

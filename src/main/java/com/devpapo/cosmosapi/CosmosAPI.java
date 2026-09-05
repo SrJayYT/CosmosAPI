@@ -7,6 +7,7 @@ import com.devpapo.cosmosapi.command.PublicShopCommand;
 import com.devpapo.cosmosapi.condition.ConditionsService;
 import com.devpapo.cosmosapi.cosmo.CosmosService;
 import com.devpapo.cosmosapi.economy.EconomyShopGUIListener;
+import com.devpapo.cosmosapi.integration.PlayerKits2Listener;
 import com.devpapo.cosmosapi.hologram.HologramManager;
 import com.devpapo.cosmosapi.listener.CosmoRewardListener;
 import com.devpapo.cosmosapi.menu.MenuListener;
@@ -103,6 +104,7 @@ public final class CosmosAPI extends JavaPlugin {
         startMemoryCleanupTask();
 
         runOptionalIntegration("EconomyShopGUI", () -> Bukkit.getPluginManager().registerEvents(new EconomyShopGUIListener(cosmosService), this));
+        runOptionalIntegration("PlayerKits2", () -> Bukkit.getPluginManager().registerEvents(new PlayerKits2Listener(this, cosmosService), this));
         if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
             runOptionalIntegration("PlaceholderAPI", () -> {
                 new CosmosPlaceholderExpansion(this, cosmosService, "cosmos").register();

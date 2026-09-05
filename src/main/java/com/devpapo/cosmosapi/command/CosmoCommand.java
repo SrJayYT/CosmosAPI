@@ -17,7 +17,13 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
+import net.md_5.bungee.api.chat.ClickEvent;
+import net.md_5.bungee.api.chat.ComponentBuilder;
+import net.md_5.bungee.api.chat.HoverEvent;
+import net.md_5.bungee.api.chat.TextComponent;
+import net.md_5.bungee.api.chat.hover.content.Text;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
@@ -33,6 +39,7 @@ public final class CosmoCommand implements CommandExecutor, TabCompleter {
     private final MenuManager menuManager;
     private final CosmoShopManager cosmoShopManager;
     private final HologramManager hologramManager;
+    private final Map<UUID, ResetConfirmation> resetConfirmations = new java.util.HashMap<>();
 
     public CosmoCommand(CosmosAPI plugin, CosmosService cosmosService, MenuManager menuManager, CosmoShopManager cosmoShopManager, HologramManager hologramManager) {
         this.plugin = plugin;
@@ -119,6 +126,12 @@ public final class CosmoCommand implements CommandExecutor, TabCompleter {
             case "takeall":
                 takeAll(sender, args);
                 return true;
+            case "resetall":
+                resetAll(sender, args);
+                return true;
+            case "confirmresetall":
+                confirmResetAll(sender, args);
+                return true;
             case "set":
                 changeBalance(sender, args, true);
                 return true;
@@ -180,6 +193,10 @@ public final class CosmoCommand implements CommandExecutor, TabCompleter {
         }
         if (!(sender instanceof Player)) {
             message(sender, "player-only", Map.of());
+            return;
+        }
+        if (isBedrockPlayer((Player) sender)) {
+            message(sender, "java-player-only", Map.of());
             return;
         }
         Player player = (Player) sender;
@@ -671,6 +688,7 @@ public final class CosmoCommand implements CommandExecutor, TabCompleter {
             message(sender, "unknown-cosmo", Map.of("cosmo", args[1]));
             return;
         }
+        plugin.refreshMenuCommands();
         message(sender, enabled ? "cosmo-enabled" : "cosmo-disabled", Map.of("cosmo", args[1]));
     }
 
@@ -763,6 +781,10 @@ public final class CosmoCommand implements CommandExecutor, TabCompleter {
             message(sender, "unknown-cosmo", Map.of("cosmo", args[1]));
             return;
         }
+        if (!cosmo.isEnabled()) {
+            message(sender, "unknown-cosmo", Map.of("cosmo", args[1]));
+            return;
+        }
         if (target == null || value <= 0L) {
             message(sender, "invalid-target-or-amount", Map.of());
             return;
@@ -787,6 +809,10 @@ public final class CosmoCommand implements CommandExecutor, TabCompleter {
         CosmoDefinition cosmo = cosmosService.getCosmo(args[1]);
         long value = signedAmount(sender, args[3]);
         if (cosmo == null) {
+            message(sender, "unknown-cosmo", Map.of("cosmo", args[1]));
+            return;
+        }
+        if (!cosmo.isEnabled()) {
             message(sender, "unknown-cosmo", Map.of("cosmo", args[1]));
             return;
         }
@@ -817,6 +843,10 @@ public final class CosmoCommand implements CommandExecutor, TabCompleter {
             message(sender, "unknown-cosmo", Map.of("cosmo", args[1]));
             return;
         }
+        if (!cosmo.isEnabled()) {
+            message(sender, "unknown-cosmo", Map.of("cosmo", args[1]));
+            return;
+        }
         if (value <= 0L) {
             return;
         }
@@ -833,28 +863,33 @@ public final class CosmoCommand implements CommandExecutor, TabCompleter {
         );
         message(sender, "giveall-success", replacements);
         for (Player player : Bukkit.getOnlinePlayers()) {
-            message(player, "giveall-announcement", replacements);
+            plugin.getMessageManager().sendWithoutPrefix(player, "giveall-announcement", replacements);
         }
         playGiveAllMelody();
     }
 
     private void takeBalance(CommandSender sender, String[] args) {
         if (!admin(sender) || args.length != 4) {
-            usage(sender, "/cosmo take <cosmo> <jugador> <cantidad>");
+            usage(sender, "/cosmo take <cosmo> <jugador> <cantidad|all>");
             return;
         }
         CosmoDefinition cosmo = cosmosService.getCosmo(args[1]);
-        long value = amount(sender, args[3]);
+        boolean all = args[3].equalsIgnoreCase("all");
+        long value = all ? 0L : amount(sender, args[3]);
         if (cosmo == null) {
             message(sender, "unknown-cosmo", Map.of("cosmo", args[1]));
             return;
         }
-        if (value <= 0L) {
+        if (!cosmo.isEnabled()) {
+            message(sender, "unknown-cosmo", Map.of("cosmo", args[1]));
+            return;
+        }
+        if (!all && value <= 0L) {
             return;
         }
         OfflinePlayer target = Bukkit.getOfflinePlayer(args[2]);
         long balance = cosmosService.getBalance(target.getUniqueId(), cosmo.getId());
-        long removed = Math.min(Math.max(0L, balance), value);
+        long removed = all ? Math.max(0L, balance) : Math.min(Math.max(0L, balance), value);
         cosmosService.setBalance(target.getUniqueId(), cosmo.getId(), Math.max(0L, balance - removed));
         Map<String, String> replacements = Map.of(
             "player", args[2],
@@ -869,23 +904,28 @@ public final class CosmoCommand implements CommandExecutor, TabCompleter {
 
     private void takeAll(CommandSender sender, String[] args) {
         if (!admin(sender) || args.length != 3) {
-            usage(sender, "/cosmo takeall <cosmo> <cantidad>");
+            usage(sender, "/cosmo takeall <cosmo> <cantidad|all>");
             return;
         }
         CosmoDefinition cosmo = cosmosService.getCosmo(args[1]);
-        long value = amount(sender, args[2]);
+        boolean all = args[2].equalsIgnoreCase("all");
+        long value = all ? 0L : amount(sender, args[2]);
         if (cosmo == null) {
             message(sender, "unknown-cosmo", Map.of("cosmo", args[1]));
             return;
         }
-        if (value <= 0L) {
+        if (!cosmo.isEnabled()) {
+            message(sender, "unknown-cosmo", Map.of("cosmo", args[1]));
+            return;
+        }
+        if (!all && value <= 0L) {
             return;
         }
         long removed = 0L;
         int recipients = 0;
         for (Player player : Bukkit.getOnlinePlayers()) {
             long balance = cosmosService.getBalance(player.getUniqueId(), cosmo.getId());
-            long playerRemoved = Math.min(Math.max(0L, balance), value);
+            long playerRemoved = all ? Math.max(0L, balance) : Math.min(Math.max(0L, balance), value);
             removed += playerRemoved;
             cosmosService.setBalance(player.getUniqueId(), cosmo.getId(), balance - playerRemoved);
             recipients++;
@@ -899,6 +939,72 @@ public final class CosmoCommand implements CommandExecutor, TabCompleter {
         message(sender, "takeall-success", replacements);
         for (Player player : Bukkit.getOnlinePlayers()) {
             message(player, "takeall-announcement", replacements);
+        }
+    }
+
+    private void resetAll(CommandSender sender, String[] args) {
+        if (!admin(sender) || args.length != 2) {
+            usage(sender, "/cosmo resetall <cosmo|all>");
+            return;
+        }
+        if (!(sender instanceof Player)) {
+            message(sender, "player-only", Map.of());
+            return;
+        }
+        if (isBedrockPlayer((Player) sender)) {
+            message(sender, "java-player-only", Map.of());
+            return;
+        }
+        String cosmoId = args[1];
+        if (!cosmoId.equalsIgnoreCase("all")) {
+            CosmoDefinition cosmo = cosmosService.getCosmo(cosmoId);
+            if (cosmo == null || !cosmo.isEnabled()) {
+                message(sender, "unknown-cosmo", Map.of("cosmo", cosmoId));
+                return;
+            }
+        }
+        Player player = (Player) sender;
+        String target = cosmoId.equalsIgnoreCase("all") ? "all" : cosmosService.getCosmo(cosmoId).getId();
+        String token = UUID.randomUUID().toString();
+        resetConfirmations.put(player.getUniqueId(), new ResetConfirmation(token, target, System.currentTimeMillis() + 30_000L));
+        sendResetConfirmation(player, target, token);
+    }
+
+    private void confirmResetAll(CommandSender sender, String[] args) {
+        if (!(sender instanceof Player) || args.length != 2) {
+            return;
+        }
+        Player player = (Player) sender;
+        ResetConfirmation confirmation = resetConfirmations.remove(player.getUniqueId());
+        if (confirmation == null || confirmation.expiresAt < System.currentTimeMillis() || !confirmation.token.equals(args[1])) {
+            message(player, "resetall-confirmation-expired", Map.of());
+            return;
+        }
+        int players = confirmation.cosmoId.equals("all")
+            ? cosmosService.resetAllBalances()
+            : cosmosService.resetBalances(confirmation.cosmoId);
+        message(player, "resetall-success", Map.of("cosmo", confirmation.cosmoId, "players", String.valueOf(players)));
+    }
+
+    private void sendResetConfirmation(Player player, String cosmoId, String token) {
+        player.sendMessage(ColorUtil.color(plugin.getMessageManager().format("resetall-confirmation", Map.of("cosmo", cosmoId))));
+        TextComponent confirm = new TextComponent(ColorUtil.color(plugin.getMessageManager().format("resetall-confirm-button", Map.of())));
+        confirm.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/cosmo confirmresetall " + token));
+        confirm.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(ColorUtil.color(plugin.getMessageManager().format("resetall-confirm-hover", Map.of())))));
+        player.spigot().sendMessage(new ComponentBuilder(confirm)
+            .append(new TextComponent(ColorUtil.color(plugin.getMessageManager().format("resetall-confirm-expiry", Map.of()))))
+            .create());
+    }
+
+    private boolean isBedrockPlayer(Player player) {
+        try {
+            Class<?> floodgateApi = Class.forName("org.geysermc.floodgate.api.FloodgateApi");
+            Object api = floodgateApi.getMethod("getInstance").invoke(null);
+            return (boolean) floodgateApi.getMethod("isFloodgatePlayer", UUID.class).invoke(api, player.getUniqueId());
+        } catch (ClassNotFoundException ignored) {
+            return false;
+        } catch (ReflectiveOperationException exception) {
+            return true;
         }
     }
 
@@ -996,10 +1102,22 @@ public final class CosmoCommand implements CommandExecutor, TabCompleter {
         }
     }
 
+    private static final class ResetConfirmation {
+        private final String token;
+        private final String cosmoId;
+        private final long expiresAt;
+
+        private ResetConfirmation(String token, String cosmoId, long expiresAt) {
+            this.token = token;
+            this.cosmoId = cosmoId;
+            this.expiresAt = expiresAt;
+        }
+    }
+
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         if (args.length == 1) {
-            return complete(args[0], Arrays.asList("create", "edit", "pars", "displayname", "delete", "menu", "menus", "shop", "inventory", "hologram", "reload", "view", "list", "status", "tops", "balance", "baltop", "send", "give", "take", "giveall", "takeall", "set", "help"));
+            return complete(args[0], Arrays.asList("create", "edit", "pars", "displayname", "delete", "menu", "menus", "shop", "inventory", "hologram", "reload", "view", "list", "status", "tops", "balance", "baltop", "send", "give", "take", "giveall", "takeall", "resetall", "set", "help"));
         }
         String root = args[0].toLowerCase(Locale.ROOT);
         if (root.equals("pars") && args.length == 2) {
@@ -1010,6 +1128,11 @@ public final class CosmoCommand implements CommandExecutor, TabCompleter {
         }
         if ((root.equals("edit") || root.equals("displayname") || root.equals("delete") || root.equals("status") || root.equals("balance") || root.equals("baltop") || root.equals("send") || root.equals("give") || root.equals("take") || root.equals("giveall") || root.equals("takeall") || root.equals("set")) && args.length == 2) {
             return complete(args[1], cosmoIds());
+        }
+        if (root.equals("resetall") && args.length == 2) {
+            List<String> options = new ArrayList<>(cosmoIds());
+            options.add("all");
+            return complete(args[1], options);
         }
         if (root.equals("status") && args.length == 3) {
             return complete(args[2], Arrays.asList("enable", "disable"));
@@ -1025,6 +1148,12 @@ public final class CosmoCommand implements CommandExecutor, TabCompleter {
         }
         if ((root.equals("send") || root.equals("give") || root.equals("take") || root.equals("set")) && args.length == 3) {
             return complete(args[2], Bukkit.getOnlinePlayers().stream().map(Player::getName).collect(Collectors.toList()));
+        }
+        if (root.equals("take") && args.length == 4) {
+            return complete(args[3], Collections.singletonList("all"));
+        }
+        if (root.equals("takeall") && args.length == 3) {
+            return complete(args[2], Collections.singletonList("all"));
         }
         if (root.equals("create") && args.length == 3) {
             return complete(args[2], Arrays.stream(CosmosTrigger.values()).map(Enum::name).collect(Collectors.toList()));

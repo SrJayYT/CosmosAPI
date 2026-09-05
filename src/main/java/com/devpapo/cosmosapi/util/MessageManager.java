@@ -27,6 +27,10 @@ public final class MessageManager {
         sender.sendMessage(ColorUtil.color(format("prefix", Map.of()) + format(key, replacements)));
     }
 
+    public void sendWithoutPrefix(CommandSender sender, String key, Map<String, String> replacements) {
+        sender.sendMessage(ColorUtil.color(format(key, replacements)));
+    }
+
     public String format(String key, Map<String, String> replacements) {
         String message = messages.getString(key, "");
         return applyReplacements(message, replacements);

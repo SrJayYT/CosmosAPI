@@ -6,7 +6,7 @@ CosmosAPI añade monedas virtuales configurables llamadas **cosmos**. Cada cosmo
 | --- | --- |
 | Versión | `1.0.3` |
 | Plataforma | Spigot/Paper 1.21.x |
-| Java | 17 |
+| Java | 21 |
 | Autor | devpapo |
 | Build | **Maven** (`pom.xml`) |
 | Paquete base | `com.devpapo.cosmosapi` |
@@ -22,9 +22,12 @@ CosmosAPI añade monedas virtuales configurables llamadas **cosmos**. Cada cosmo
 7. [Menús internos](#menús-internos)
 8. [Placeholders](#placeholders)
 9. [Tiendas Cosmos por archivos](#tiendas-cosmos-por-archivos)
-10. [EconomyShopGUI](#economyshopgui)
-11. [Hologramas](#hologramas)
-12. [Configuración y archivos](#configuración-y-archivos)
+10. [EconomyShopGUI](#economyshopgui-721)
+11. [PlayerKits2](#playerkits2)
+12. [Hologramas](#hologramas)
+13. [Permisos](#permisos)
+14. [Configuración y archivos](#configuración-y-archivos)
+15. [Desarrollo](#desarrollo)
 
 ## Instalación
 
@@ -46,6 +49,7 @@ El primer comando crea el ID interno `gemas`. El segundo define el nombre que ve
 | --- | --- |
 | PlaceholderAPI | Usar `%cosmos_...%` en otros plugins, TAB y menús. |
 | EconomyShopGUI `7.2.1` | Comprar y vender usando cosmos como moneda. |
+| PlayerKits2 | Cobrar cosmos al reclamar kits configurados. |
 | DecentHolograms | Crear hologramas de rankings. |
 | TAB | Mostrar los placeholders de CosmosAPI en scoreboards o tablist. |
 
@@ -139,7 +143,10 @@ Ejemplos:
 ```text
 /cosmo give <cosmo> <jugador> <cantidad>
 /cosmo set <cosmo> <jugador> <cantidad>
+/cosmo take <cosmo> <jugador> <cantidad|all>
 /cosmo giveall <cosmo> <cantidad>
+/cosmo takeall <cosmo> <cantidad|all>
+/cosmo resetall <cosmo|all>
 ```
 
 Ejemplos:
@@ -159,9 +166,25 @@ Ejemplos:
 
 # Da 25 Tokens a todos los jugadores conectados y envía un anuncio global.
 /cosmo giveall tokens 25
+
+# Retira todo el saldo de Gemas a Steve.
+/cosmo take gemas Steve all
+
+# Retira todo el saldo de Tokens a todos los jugadores conectados.
+/cosmo takeall tokens all
 ```
 
-`giveall` solo acepta cantidades positivas. `/cosmo give` y `/cosmo set` aceptan números negativos.
+`giveall` solo acepta cantidades positivas. `/cosmo give` y `/cosmo set` aceptan números negativos. `take` y `takeall` admiten `all` para retirar el saldo completo sin que pueda quedar negativo.
+
+### Reiniciar saldos masivamente
+
+```text
+/cosmo resetall <cosmo|all>
+```
+
+El comando reinicia los saldos de jugadores conectados y desconectados. Envía una confirmación interactiva al chat: pasa el cursor por el botón y haz clic en **[CONFIRMAR REINICIO]** dentro de 30 segundos. El token es personal y de un solo uso.
+
+Por seguridad, `resetall` solo puede iniciarlo un jugador Java con `cosmos.admin`; no puede ejecutarse desde la consola ni desde jugadores Bedrock/Floodgate. `resetall all` solo reinicia los cosmos activos.
 
 ### Activar y desactivar cosmos
 
@@ -188,11 +211,12 @@ Ejemplos:
 `/cosmo list` muestra cada cosmo como **Activado** o **Desactivado**. Cuando un cosmo está desactivado:
 
 - No entrega recompensas automáticas.
-- No se puede enviar mediante `/cosmo send`.
-- No puede usarse para compras ni ventas en EconomyShopGUI.
+- No se puede enviar, dar, establecer, retirar ni reiniciar mediante los comandos de saldo.
+- No puede usarse para compras ni ventas en EconomyShopGUI, PlayerKits2, tiendas internas ni tiendas por archivos.
 - Las condiciones asociadas no retiran saldo.
+- No se puede crear ni abrir una tienda vinculada a él.
 
-Los administradores todavía pueden usar `/cosmo give`, `/cosmo set` y `/cosmo giveall` para ajustar balances mientras está desactivado. Esto permite preparar saldos o realizar mantenimiento antes de activarlo otra vez.
+El cosmo sigue siendo visible en `/cosmo view`, `/cosmo tops`, `/cosmo balance`, `/cosmo baltop` y `/cosmo list`, junto con sus saldos y rankings.
 
 ## Recompensas automáticas y condiciones
 
@@ -519,7 +543,7 @@ Resultado:
 - Vender un cohete entrega **2 gemas**.
 - El artículo no utiliza el dinero de Vault.
 
-Los placeholders de idioma de EconomyShopGUI `%buyPrice%` y `%sellPrice%` muestran el importe seguido del **ID interno** del cosmo. Para el ejemplo anterior se verán como `5 gemas` y `2 gemas`. El `displayName` del cosmo no se usa para formatear estos precios.
+Los placeholders de idioma de EconomyShopGUI `%buyPrice%` y `%sellPrice%` usan el mismo formato compacto que el scoreboard, seguido del **ID interno** del cosmo. Por ejemplo, un precio de `10244` se mostrará como `10,2k gemas`. El `displayName` del cosmo no se usa para formatear estos precios.
 
 En EconomyShopGUI `7.2.1`, usa exclusivamente `buy:` y `sell:` como el resto de artículos de la tienda. No uses `buy-price` ni `sell-price` para los artículos de CosmosAPI. Tampoco escribas `buy-price::` o `sell-price::`: el doble `:` invalida el precio y EconomyShopGUI mostrará el objeto sin opciones de compra o venta.
 
@@ -533,6 +557,28 @@ Para un artículo que solo se pueda comprar, omite `sell:`:
 ```
 
 Los precios de cosmos deben ser números enteros no negativos. Los decimales se rechazan para impedir redondeos inesperados al cobrar o pagar. Si EconomyShopGUI no reconoce una moneda, comprueba que el ID sea correcto, que el cosmo exista y ejecuta `/cosmo reload` seguido de `/sreload`.
+
+## PlayerKits2
+
+CosmosAPI puede cobrar un cosmo cuando un jugador reclama un kit de [PlayerKits2](https://github.com/Ajneb97/PlayerKits2). La integración es opcional: instala ambos plugins y activa los kits que quieras cobrar en `config.yml`.
+
+```yml
+playerkits2:
+  enabled: true
+  kits:
+    starter:
+      cosmo: gemas
+      price: 10244
+```
+
+- El ID bajo `kits:` debe coincidir con el nombre del kit de PlayerKits2.
+- `cosmo` debe ser un cosmo existente y activo; `price` debe ser un entero positivo.
+- Configura el precio nativo del kit de PlayerKits2 en `0` para evitar un doble cobro.
+- Funciona al reclamar con `/kit <kit>`, `/kit claim <kit>` y desde el menú de PlayerKits2.
+- CosmosAPI retira el importe antes de entregar el kit y lo devuelve si PlayerKits2 rechaza la entrega, por ejemplo por cooldown, permisos, requisitos o inventario lleno.
+- El mensaje de confirmación muestra el importe abreviado, por ejemplo `10,2k`.
+
+Después de modificar esta sección, ejecuta `/cosmo reload`.
 
 ## Hologramas
 
@@ -595,6 +641,14 @@ menus:
 holograms:
   # Habilita los hologramas de ranking mediante DecentHolograms.
   enabled: true
+
+playerkits2:
+  # Cobra cosmos al reclamar kits de PlayerKits2. El precio nativo del kit debe ser 0.
+  enabled: false
+  kits:
+    # starter:
+    #   cosmo: gemas
+    #   price: 100
 ```
 
 Ejecuta `/cosmo reload` después de cambiar `config.yml`, `cosmos.yml`, `conditions.yml` o `menus.yml`.

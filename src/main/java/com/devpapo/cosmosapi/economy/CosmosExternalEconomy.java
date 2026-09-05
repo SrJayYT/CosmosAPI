@@ -1,6 +1,5 @@
 package com.devpapo.cosmosapi.economy;
 
-import com.devpapo.cosmosapi.cosmo.CosmoDefinition;
 import com.devpapo.cosmosapi.cosmo.CosmosService;
 import me.gypopo.economyshopgui.api.objects.ExternalEconomy;
 import org.bukkit.OfflinePlayer;
@@ -39,8 +38,7 @@ public final class CosmosExternalEconomy extends ExternalEconomy {
 
     @Override
     public String getFriendly() {
-        CosmoDefinition cosmo = cosmosService.getCosmo(cosmoId);
-        return cosmo == null ? cosmoId : cosmo.getDisplayName();
+        return cosmoId;
     }
 
     @Override
@@ -50,9 +48,10 @@ public final class CosmosExternalEconomy extends ExternalEconomy {
 
     @Override
     public String formatPrice(double amount) {
-        return Double.isFinite(amount) && amount >= 0D && amount <= Long.MAX_VALUE
-                ? Long.toString((long) amount)
-                : "0";
+        long wholeAmount = Double.isFinite(amount) && amount >= 0D && amount <= Long.MAX_VALUE
+                ? (long) amount
+                : 0L;
+        return wholeAmount + " " + getFriendly();
     }
 
     @Override
